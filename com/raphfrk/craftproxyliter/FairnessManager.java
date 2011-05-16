@@ -150,10 +150,10 @@ public class FairnessManager {
 
 				boolean highQueueHasPriority = true;
 
-				highQueueHasPriority = 
-					(lowEntry == null) || 
-					(offset >= 0) ||
-					(highEntry != null && highEntry.timestamp <= (lowEntry.timestamp + 5));
+				highQueueHasPriority = true;
+				//	(lowEntry == null) || 
+				//	(offset >= 0) ||
+				//	(highEntry != null && highEntry.timestamp <= (lowEntry.timestamp + 100));
 
 				//System.out.println("High Queue : " + highEntry);
 				//System.out.println("Low  Queue : " + lowEntry);
