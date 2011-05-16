@@ -11,7 +11,7 @@ public class ProtocolOutputStream {
 	private final BufferedOutputStream buffered;
 
 	public ProtocolOutputStream(OutputStream out) {
-		buffered = new MaxLatencyBufferedOutputStream(out, 1024, 100);
+		buffered = new MaxLatencyBufferedOutputStream(out, 1024, 20);
 	}
 
 	public Packet sendPacket(Packet packet) throws IOException {
