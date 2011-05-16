@@ -19,7 +19,7 @@ public class FairnessManager {
 	ConcurrentLinkedQueue<Reference<byte[]>> smallBufferPool = new ConcurrentLinkedQueue<Reference<byte[]>>();
 
 	AtomicInteger bufCalls = new AtomicInteger(0);
-	
+
 	public byte[] getBuffer(int size) {
 		//System.out.println("Buffer call: (" + size + ") " + bufCalls.incrementAndGet());
 		/*if(size <= smallSize) {
@@ -27,7 +27,7 @@ public class FairnessManager {
 		} else if(size <= largeSize) {
 			return getLargeBuffer();
 		} else {*/
-			return new byte[size];
+		return new byte[size];
 		//}
 	}
 
@@ -79,16 +79,18 @@ public class FairnessManager {
 	final private Object outSync = new Object();
 
 	boolean addPacketToLowQueue(ProtocolOutputStream pout, Packet p, KillableThread t) {
-		boolean r = lowQueue.add(new FairnessEntry(pout, p.clone(this), t));
+		boolean r;
 		synchronized(outSync) {
+			r = lowQueue.add(new FairnessEntry(pout, p.clone(this), t));
 			outSync.notifyAll();
 		}
 		return r;
 	}
 
 	boolean addPacketToHighQueue(ProtocolOutputStream pout, Packet p, KillableThread t) {
-		boolean r = highQueue.add(new FairnessEntry(pout, p.clone(this), t));
+		boolean r;
 		synchronized(outSync) {
+			r = highQueue.add(new FairnessEntry(pout, p.clone(this), t));
 			outSync.notifyAll();
 		}
 		return r;
@@ -126,11 +128,26 @@ public class FairnessManager {
 		public void run() {
 
 			while(!killed()) {
-				
+
+				synchronized(outSync) {
+					if(highQueue.isEmpty() && lowQueue.isEmpty()) {
+						offset = 0;
+						try {
+							outSync.wait(100);
+						} catch (InterruptedException e) {
+							kill();
+							continue;
+						}
+					}
+				}
+
+				if(killed()) {
+					continue;
+				}
 
 				FairnessEntry lowEntry = lowQueue.peek();
 				FairnessEntry highEntry = highQueue.peek();
-				
+
 				boolean highQueueHasPriority = true;
 
 				highQueueHasPriority = 
@@ -144,42 +161,46 @@ public class FairnessManager {
 
 
 				if(highQueueHasPriority) {
+					highEntry = highQueue.poll();
 					if(highEntry != null) {
-						highEntry = highQueue.poll();
 						try {
 							highEntry.send();
 							offset -= highEntry.packet.end - highEntry.packet.start;
 						} catch (IOException e) {
 							highEntry.bridge.interrupt();
 						}
-					} else if(lowEntry != null) {
-						lowEntry = lowQueue.poll();
+						continue;
+					}
+					lowEntry = lowQueue.poll();
+					if(lowEntry != null) {
 						try {
 							lowEntry.send();
 							offset += lowEntry.packet.end - lowEntry.packet.start;
 						} catch (IOException e) {
 							lowEntry.bridge.interrupt();
 						}
+						continue;
 					}
 				} else {
 					lowEntry = lowQueue.poll();
-					try {
-						lowEntry.send();
-						offset += lowEntry.packet.end - lowEntry.packet.start;
-					} catch (IOException e) {
-						lowEntry.bridge.interrupt();
-					}
-				}
-
-				synchronized(outSync) {
-					if(highQueue.peek() == null && lowQueue.peek() == null) {
-						offset = 0;
+					if(lowEntry != null) {
 						try {
-							outSync.wait(100);
-						} catch (InterruptedException e) {
-							kill();
-							continue;
+							lowEntry.send();
+							offset += lowEntry.packet.end - lowEntry.packet.start;
+						} catch (IOException e) {
+							lowEntry.bridge.interrupt();
 						}
+						continue;
+					}
+					highEntry = highQueue.poll();
+					if(highEntry != null) {
+						try {
+							highEntry.send();
+							offset -= highEntry.packet.end - highEntry.packet.start;
+						} catch (IOException e) {
+							highEntry.bridge.interrupt();
+						}
+						continue;
 					}
 				}
 			}
