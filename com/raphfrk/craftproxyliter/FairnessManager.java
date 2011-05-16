@@ -81,13 +81,15 @@ public class FairnessManager {
 	boolean addPacketToLowQueue(ProtocolOutputStream pout, Packet p, KillableThread t) {
 		boolean r = true;
 		try {
-			pout.sendPacket(p);
+			synchronized(pout) {
+				pout.sendPacket(p);
+			}
 		} catch (IOException e) {
 			System.out.println("Packet send failed");
 		}
 		//synchronized(outSync) {
-			//r = lowQueue.add(new FairnessEntry(pout, p.clone(this), t));
-			//outSync.notifyAll();
+		//r = lowQueue.add(new FairnessEntry(pout, p.clone(this), t));
+		//outSync.notifyAll();
 		//}
 		return r;
 	}
@@ -95,13 +97,15 @@ public class FairnessManager {
 	boolean addPacketToHighQueue(ProtocolOutputStream pout, Packet p, KillableThread t) {
 		boolean r = true;
 		try {
-			pout.sendPacket(p);
+			synchronized(pout) {
+				pout.sendPacket(p);
+			}
 		} catch (IOException e) {
 			System.out.println("Packet send failed");
 		}
 		//synchronized(outSync) {
-			//r = highQueue.add(new FairnessEntry(pout, p.clone(this), t));
-			//outSync.notifyAll();
+		//r = highQueue.add(new FairnessEntry(pout, p.clone(this), t));
+		//outSync.notifyAll();
 		//}
 		return r;
 	}
