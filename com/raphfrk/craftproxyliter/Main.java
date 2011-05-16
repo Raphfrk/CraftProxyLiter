@@ -44,7 +44,7 @@ public class Main {
 		if( args.length < 2 ) {
 			Logging.log( "Usage: " + usageString );
 			Logging.log("    auth                  Switches on authentication (not needed)");
-			Logging.log("    auth_off              Switches off authentication");
+			Logging.log("    auth_off              Proxy leaves authentication to Minecraft server");
 			Logging.log("    staticlocalhost       Forces use of 127.0.0.1 for localhost");
 			Logging.log("    rotatelocalhost       Uses a different 127.0.x.y for each connection to localhost");
 			Logging.log("    clientversion  <num>  Allows manually setting of client version");
