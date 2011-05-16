@@ -29,6 +29,7 @@ public class MaxLatencyBufferedOutputStream extends BufferedOutputStream {
 	private void pingFlush() {
 		if(nextFlush.compareAndSet(0, System.currentTimeMillis() + maxLatency)) {
 			synchronized(syncObj) {
+				//System.out.println("Flush request " + System.currentTimeMillis());
 				//System.out.println("Notifying");
 				syncObj.notifyAll();
 			}
@@ -66,6 +67,7 @@ public class MaxLatencyBufferedOutputStream extends BufferedOutputStream {
 
 		lock.lock();
 		try {
+			//System.out.println("Flush happening " + System.currentTimeMillis());
 			super.flush();
 		} finally {
 			lock.unlock();
@@ -100,19 +102,20 @@ public class MaxLatencyBufferedOutputStream extends BufferedOutputStream {
 				long nextFlushLocal = nextFlush.get();
 
 				long currentTime = System.currentTimeMillis();
+				
+				//System.out.println("next flush local: " + nextFlushLocal + " currentTime " + currentTime);
 
-				if(nextFlushLocal != 0 && nextFlushLocal + maxLatency < currentTime) {
+				if(nextFlushLocal != 0 && nextFlushLocal < currentTime + 2) {
 
-					if(lock.tryLock()) {
+					//if(lock.tryLock()) {
+					lock.lock(); {
 						try {
 							flush();
 						} catch (IOException e) {
 						} finally {
 							lock.unlock();
 						}
-					} else {
-						//System.out.println("Lock failed");
-					}
+					} 
 
 				}
 
@@ -120,7 +123,8 @@ public class MaxLatencyBufferedOutputStream extends BufferedOutputStream {
 					nextFlushLocal = nextFlush.get();
 					currentTime = System.currentTimeMillis();
 
-					long delay = Math.max(10L, Math.min(maxLatency, nextFlushLocal - currentTime));
+					long delay = Math.max(2L, Math.min(maxLatency, nextFlushLocal - currentTime));
+					//System.out.println("Timer sleeping for " + delay + " at " + System.currentTimeMillis());
 					try {
 						if(nextFlushLocal == 0 ) {
 							//System.out.println("Waiting 500");
@@ -129,6 +133,7 @@ public class MaxLatencyBufferedOutputStream extends BufferedOutputStream {
 							//System.out.println("Waiting " + delay);
 							syncObj.wait(delay);
 						} 
+						//System.out.println("Timer wake up" + System.currentTimeMillis());
 					} catch (InterruptedException ie) {
 						kill();
 						continue;

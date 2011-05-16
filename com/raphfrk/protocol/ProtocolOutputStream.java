@@ -1,17 +1,17 @@
 package com.raphfrk.protocol;
 
-import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import com.raphfrk.craftproxyliter.Globals;
 import com.raphfrk.netutil.MaxLatencyBufferedOutputStream;
 
 public class ProtocolOutputStream {
 
-	private final BufferedOutputStream buffered;
+	private final OutputStream buffered;
 
 	public ProtocolOutputStream(OutputStream out) {
-		buffered = new MaxLatencyBufferedOutputStream(out, 1024, 20);
+		buffered = new MaxLatencyBufferedOutputStream(out, 1024, Globals.getBufferLatency());
 	}
 
 	public Packet sendPacket(Packet packet) throws IOException {

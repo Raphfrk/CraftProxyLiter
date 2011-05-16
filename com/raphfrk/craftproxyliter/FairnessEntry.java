@@ -21,6 +21,10 @@ public class FairnessEntry {
 	}
 
 	public void send() throws IOException {
+		long delay = (System.currentTimeMillis() - timestamp);
+		if(delay > 20) {
+			System.out.println("Delay through fairness manager: " + delay);
+		}
 		pout.sendPacket(packet);
 	}
 

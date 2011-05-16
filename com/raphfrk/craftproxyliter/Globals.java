@@ -61,6 +61,16 @@ public class Globals {
 		monitor = newMonitor;
 	}
 	
+	static private long latency = 20;
+
+	public synchronized static long getBufferLatency() {
+		return latency;
+	}
+	
+	public synchronized static void setBufferLatency( long newLatency ) {
+		latency = newLatency;
+	}
+	
 	static private boolean debug = false;
 
 	public synchronized static boolean isDebug() {
