@@ -1,5 +1,6 @@
 package com.raphfrk.protocol;
 
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -7,10 +8,10 @@ import com.raphfrk.netutil.MaxLatencyBufferedOutputStream;
 
 public class ProtocolOutputStream {
 
-	private final MaxLatencyBufferedOutputStream buffered;
+	private final BufferedOutputStream buffered;
 
 	public ProtocolOutputStream(OutputStream out) {
-		buffered = new MaxLatencyBufferedOutputStream(out, 1024, 25);
+		buffered = new MaxLatencyBufferedOutputStream(out, 1024, 100);
 	}
 
 	public Packet sendPacket(Packet packet) throws IOException {
@@ -18,7 +19,7 @@ public class ProtocolOutputStream {
 		int top = packet.mask + 1;
 		int start = packet.start & packet.mask;
 		int end = packet.end & packet.mask;
-
+		
 		if(start > end) {
 			buffered.write(packet.buffer, start, top - start);
 			buffered.write(packet.buffer, 0, end);
@@ -32,7 +33,7 @@ public class ProtocolOutputStream {
 			buffered.write(packet.buffer, start, end - start);
 
 		}
-
+		
 		return packet;
 
 	}
@@ -45,8 +46,4 @@ public class ProtocolOutputStream {
 		buffered.close();
 	}
 	
-	public void killTimerWithJoin() {
-		buffered.killTimerWithJoin();
-	}
-
 }

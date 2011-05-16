@@ -23,6 +23,7 @@ public class Packet {
 		p.start = 0;
 		p.end = length;
 		p.mask = mask;
+		p.timeStamp = timeStamp;
 
 		int startMod = start & mask;
 		int endMod = end & mask;
@@ -79,30 +80,30 @@ public class Packet {
 
 
 	public void writeByte(byte b) {
-		buffer[(end++) % mask] = b;
+		buffer[(end++) & mask] = b;
 	}
 
 	public void writeShort(short s) {
-		buffer[(end++) % mask] = (byte)(s >> 8);
-		buffer[(end++) % mask] = (byte)(s >> 0);
+		buffer[(end++) & mask] = (byte)(s >> 8);
+		buffer[(end++) & mask] = (byte)(s >> 0);
 	}
 
 	public void writeInt(int i) {
-		buffer[(end++) % mask] = (byte)(i >> 24);
-		buffer[(end++) % mask] = (byte)(i >> 16);
-		buffer[(end++) % mask] = (byte)(i >> 8);
-		buffer[(end++) % mask] = (byte)(i >> 0);
+		buffer[(end++) & mask] = (byte)(i >> 24);
+		buffer[(end++) & mask] = (byte)(i >> 16);
+		buffer[(end++) & mask] = (byte)(i >> 8);
+		buffer[(end++) & mask] = (byte)(i >> 0);
 	}	
 	
 	public void writeLong(long i) {
-		buffer[(end++) % mask] = (byte)(i >> 56);
-		buffer[(end++) % mask] = (byte)(i >> 48);
-		buffer[(end++) % mask] = (byte)(i >> 40);
-		buffer[(end++) % mask] = (byte)(i >> 32);
-		buffer[(end++) % mask] = (byte)(i >> 24);
-		buffer[(end++) % mask] = (byte)(i >> 16);
-		buffer[(end++) % mask] = (byte)(i >> 8);
-		buffer[(end++) % mask] = (byte)(i >> 0);
+		buffer[(end++) & mask] = (byte)(i >> 56);
+		buffer[(end++) & mask] = (byte)(i >> 48);
+		buffer[(end++) & mask] = (byte)(i >> 40);
+		buffer[(end++) & mask] = (byte)(i >> 32);
+		buffer[(end++) & mask] = (byte)(i >> 24);
+		buffer[(end++) & mask] = (byte)(i >> 16);
+		buffer[(end++) & mask] = (byte)(i >> 8);
+		buffer[(end++) & mask] = (byte)(i >> 0);
 	}	
 
 	public void writeString16(String s) {
@@ -132,14 +133,14 @@ public class Packet {
 	}
 
 	public long getLong(int pos) {
-		int a = buffer[((pos++) + start)&mask] & 0xFF;
-		int b = buffer[((pos++) + start)&mask] & 0xFF;
-		int c = buffer[((pos++) + start)&mask] & 0xFF;
-		int d = buffer[((pos++) + start)&mask] & 0xFF;
-		int e = buffer[((pos++) + start)&mask] & 0xFF;
-		int f = buffer[((pos++) + start)&mask] & 0xFF;
-		int g = buffer[((pos++) + start)&mask] & 0xFF;
-		int h = buffer[((pos++) + start)&mask] & 0xFF;
+		long a = buffer[((pos++) + start)&mask] & 0xFF;
+		long b = buffer[((pos++) + start)&mask] & 0xFF;
+		long c = buffer[((pos++) + start)&mask] & 0xFF;
+		long d = buffer[((pos++) + start)&mask] & 0xFF;
+		long e = buffer[((pos++) + start)&mask] & 0xFF;
+		long f = buffer[((pos++) + start)&mask] & 0xFF;
+		long g = buffer[((pos++) + start)&mask] & 0xFF;
+		long h = buffer[((pos++) + start)&mask] & 0xFF;
 		return (long)((a << 56) | (b << 48) | (c << 40) | (d << 32) | (e << 24) | (f << 16) | (g << 8) | h);
 	}
 
@@ -163,5 +164,27 @@ public class Packet {
 
 	boolean isValid() {
 		return (end - start) <= buffer.length;
+	}
+	
+	public boolean equals(Packet p) {
+		
+		if((end-start) != (p.end - p.start)) {
+			return false;
+		}
+		
+		if(p.mask != mask || p.timeStamp != timeStamp) {
+			return false;
+		}
+		
+		int length = end-start;
+		for(int cnt=0;cnt<length;cnt++) {
+			if(buffer[(start+cnt)&mask] != p.buffer[(p.start+cnt)&mask]) {
+				System.out.println("Mismatch at position " + cnt);
+				return false;
+			}
+		}
+		
+		return true;
+		
 	}
 }

@@ -1,217 +1,140 @@
 package com.raphfrk.netutil;
 
-import java.io.EOFException;
-import java.io.FilterOutputStream;
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.SocketException;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.ReentrantLock;
 
 import com.raphfrk.protocol.KillableThread;
 
-public class MaxLatencyBufferedOutputStream extends FilterOutputStream {
+public class MaxLatencyBufferedOutputStream extends BufferedOutputStream {
 
-	private final byte[] buffer;
-	private final int bufferLength;
-	private int position;
-	private AtomicLong nextFlushTime;
 	private final long maxLatency;
-	private final TimerThread timer = new TimerThread();
+	private final AtomicLong nextFlush = new AtomicLong(0L);
+	private final ReentrantLock lock = new ReentrantLock();
+	private final Object syncObj = new Object();
+	private final LocalTimer timer = new LocalTimer();
 
 	public MaxLatencyBufferedOutputStream(OutputStream out) {
 		this(out, 512, 50);
 	}
 
 	public MaxLatencyBufferedOutputStream(OutputStream out, int size, long maxLatency) {
-		super(out);
-		buffer = new byte[size];
-		position = 0;
-		nextFlushTime = new AtomicLong(System.currentTimeMillis());
+		super(out, size);
 		this.maxLatency = maxLatency;
-		this.bufferLength = buffer.length;
-		this.timer.start();
+		timer.start();
+	}
+
+	private void pingFlush() {
+		if(nextFlush.compareAndSet(0, System.currentTimeMillis() + maxLatency)) {
+			synchronized(syncObj) {
+				//System.out.println("Notifying");
+				syncObj.notifyAll();
+			}
+		}
+	}
+
+	private void clearFlush() {
+		nextFlush.set(0);
 	}
 
 	@Override
-	public void close() throws IOException {
-		synchronized(this) {
-			killTimerWithJoin();
-		}
-		synchronized(this) {
-			out.close();
-		}
-	}
-
-	@Override
-	public void flush() throws IOException {
-
-		boolean notify = position != 0;
-
-		synchronized(this) {
-			if(position != 0) {
-				out.write(buffer, 0, position);
-
-				position = 0;
-				out.flush();
-			}
-		}
-		if(notify) {
-			updateFlushTime();
-		}
-	}
-
-	private void updateFlushTime() {
-		synchronized(timer) {
-			nextFlushTime.set(System.currentTimeMillis() + maxLatency);
-			if(timer.deepSleep) {
-				timer.notifyAll();
-			}
-		}
-	}
-
-	@Override
-	public void write(byte[] b) throws IOException {
-		this.write(b, 0, b.length);
-	}
-
-	@Override 
-	public void write(byte[] b, int offset, int length) throws IOException {
-		synchronized(this) {
-			if(length + position > bufferLength) {
-				if(length < bufferLength || position < (bufferLength >> 1)) {
-					int copyLength = bufferLength - position;
-					System.arraycopy(b, offset, buffer, position, copyLength);
-					position += copyLength;
-					length -= copyLength;
-					offset += copyLength;
-				}
-				flush();
-			}
-			if(length + position > bufferLength) {
-				flush();
-				out.write(b, offset, length);
-			} else {
-				System.arraycopy(b, offset, buffer, position, length);
-				position += length;
-			}
-		}
-		synchronized(timer) {
-			if(timer.deepSleep) {
-				updateFlushTime();
-			}
-		}
-	}
-
-	@Override 
 	public void write(int b) throws IOException {
-		synchronized(this) {
-			if(position == bufferLength) {
-				flush();
-				buffer[0] = (byte)b;
-				position = 1;
-			} else {
-				buffer[position++] = (byte)b;
-			}
+		lock.lock();
+		try {
+			super.write(b);
+		} finally {
+			lock.unlock();
 		}
+		pingFlush();
 	}
 
 	@Override
-	protected void finalize() {
-		killTimer();
+	public void write(byte[] b, int off, int len) throws IOException {
+		lock.lock();
+		try {
+			super.write(b, off, len);
+		} finally {
+			lock.unlock();
+		}
+		pingFlush();
 	}
 
-	void killTimer() {
-		timer.interrupt();
-		synchronized(timer) {
-			timer.notifyAll();
+	public void flush() throws IOException {
+		clearFlush();
+
+		lock.lock();
+		try {
+			super.flush();
+		} finally {
+			lock.unlock();
 		}
 	}
 
-	public void killTimerWithJoin() {
+	public void close() throws IOException {
+
 		while(timer.isAlive()) {
-			killTimer();
+			timer.interrupt();
 			try {
-				timer.join();
-			} catch (InterruptedException e) {
-				System.err.println("Interrupted while attempted to kill Timer Thread");
-			}
-			if(timer.isAlive()) {
+				timer.join(50);
+			} catch (InterruptedException ie) {
 				try {
+					Thread.currentThread().interrupt();
 					Thread.sleep(50);
-				} catch (InterruptedException e) {
+				} catch (InterruptedException ie2) {
 					Thread.currentThread().interrupt();
 				}
 			}
+
 		}
+
 	}
 
-	private class TimerThread extends KillableThread {
-
-		public boolean deepSleep = false;
+	private class LocalTimer extends KillableThread {
 
 		public void run() {
 
 			while(!killed()) {
 
+				long nextFlushLocal = nextFlush.get();
+
 				long currentTime = System.currentTimeMillis();
 
-				long nextFlushTimeTemp = nextFlushTime.get();
+				if(nextFlushLocal != 0 && nextFlushLocal + maxLatency < currentTime) {
 
-				if(currentTime > nextFlushTimeTemp) {
-					try {
-						synchronized(timer) {
+					if(lock.tryLock()) {
+						try {
 							flush();
-							if(!nextFlushTime.compareAndSet(nextFlushTimeTemp, Long.MAX_VALUE)) {
-								nextFlushTime.set(nextFlushTimeTemp + maxLatency);
-							}
-							timer.wait(maxLatency + 1);
+						} catch (IOException e) {
+						} finally {
+							lock.unlock();
 						}
-					} catch (SocketException sce) {
-						System.err.print("Socket closed");
-						kill();
-						continue;
-					} catch (EOFException eof) {
-						System.err.print("EOF in timer thread");
-						kill();
-						continue;
-					} catch (IOException e) {
-						System.err.println("IO Exception in TimerThread");
-						kill();
-						continue;
-					} catch (InterruptedException e) {
-						kill();
-						continue;
-					}
-				} else if(nextFlushTimeTemp == Long.MAX_VALUE) {
-					synchronized(timer) {
-						if(nextFlushTime.get() == Long.MAX_VALUE) {
-							deepSleep = true;
-							try {
-								timer.wait(500);
-							} catch (InterruptedException e) {
-								kill();
-								continue;
-							}
-							deepSleep = false;
-						}
-					}
-				} else {
-					try {
-						long delay = Math.max(1, 1 + Math.min(maxLatency, nextFlushTimeTemp - currentTime));
-						synchronized(timer) {
-							timer.wait(delay);
-						}
-					} catch (InterruptedException e) {
-						kill();
-						continue;
+					} else {
+						System.out.println("Lock failed");
 					}
 
 				}
 
+				synchronized(syncObj) {
+					nextFlushLocal = nextFlush.get();
+					currentTime = System.currentTimeMillis();
+
+					long delay = Math.max(10L, Math.min(maxLatency, nextFlushLocal - currentTime));
+					try {
+						if(nextFlushLocal == 0 ) {
+							//System.out.println("Waiting 500");
+							syncObj.wait(500);
+						} else {
+							//System.out.println("Waiting " + delay);
+							syncObj.wait(delay);
+						} 
+					} catch (InterruptedException ie) {
+						kill();
+						continue;
+					}
+				}
 			}
-
 		}
-
 	}
-
 }

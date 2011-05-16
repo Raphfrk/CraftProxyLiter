@@ -269,14 +269,14 @@ public class MiscUtils {
 		
 	}
 	
-	static int mod( int x , int r ) {
+	/*static int mod( int x , int r ) {
 		
 		int m = x % r;
 		if( m < 0 ) m+=r;
 		
 		return m;
 		
-	}
+	}*/
 		
 	
 	static boolean isThisMyIpAddress(InetAddress addr) {

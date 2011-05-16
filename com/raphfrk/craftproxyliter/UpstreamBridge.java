@@ -26,6 +26,7 @@ public class UpstreamBridge extends KillableThread {
 		this.ptc = ptc;
 		this.fm = fm;
 
+		this.setName("Upstream Bridge");
 	}
 
 	LinkedList<Byte> oldPacketIds = new LinkedList<Byte>();
@@ -40,21 +41,21 @@ public class UpstreamBridge extends KillableThread {
 		Packet packet = new Packet();
 		Packet packetBackup = packet;
 		long[] hashStore = new long[2048];
-		
+
 		boolean blankSent = !Globals.localCache();
 
-		while(!killed()) {
+		int timeoutCounter = 0;
 
+		while(!killed()) {
+			
 			if((!blankSent) || (!ptc.connectionInfo.hashesToSend.isEmpty())) {
 
-				blankSent = true;
-				
 				Long hash;
 
 				ConcurrentLinkedQueue<Long> queue = ptc.connectionInfo.hashesToSend;
 				ConcurrentHashMap<Long,Boolean> sent = ptc.connectionInfo.hashesSent;
 
-				while(!killed() && !queue.isEmpty()) {
+				while(!killed() && (!queue.isEmpty() || !blankSent)) {
 					int size = 0;
 					hashPacket.end = 0;
 					hashPacket.writeByte((byte)0x50);
@@ -64,65 +65,81 @@ public class UpstreamBridge extends KillableThread {
 							sent.put(hash, true);
 						}
 					}
+					//System.out.println("Sending " + size + " hashes");
 					hashPacket.writeShort((short)(size * 8));
 					for(int cnt=0;cnt<size;cnt++) {
+						//System.out.println("Sending " + Long.toHexString(hashStore[cnt]));
 						hashPacket.writeLong(hashStore[cnt]);
 					}
 					ptc.connectionInfo.saved.addAndGet(-(size*8 + 3));
 					fm.addPacketToHighQueue(out, hashPacket, this);
+
+					if(!blankSent) {
+						//ptc.printLogMessage("Sent blank hash packet");
+						blankSent = true;
+					}
+
 				}
+
 			}
-			
+
 			if(killed()) {
 				continue;
 			}
 
 			try {
-				packet = in.getPacket(packet);
+				packet = in.getPacket(packet, 100);
 				if(packet == null) {
-					ptc.printLogMessage("Timeout");
-					kill();
-					continue;
+					if((timeoutCounter++) > 600) {
+						ptc.printLogMessage("Timeout");
+						kill();
+						continue;
+					} else {
+						continue;
+					}
 				}
 			} catch (EOFException e) {
 				ptc.printLogMessage("EOF reached");
 				kill();
 				continue;
 			} catch (IOException e) {
-				System.out.println("ERROR");
-			}
-			if(packet == null) {
-				if(!killed()) {
-					kill();
-					ptc.printLogMessage(packetBackup + " Unable to read packet");
-					ptc.printLogMessage("Packets: " + oldPacketIds);
-				}
+				System.out.println("IO ERROR");
+				kill();
+				continue;
+			}catch (IllegalStateException ise) {
+				kill();
+				ptc.printLogMessage(packetBackup + " Unable to read packet");
+				ptc.printLogMessage("Packets: " + oldPacketIds);
 				continue;
 			}
 
+			timeoutCounter = 0;
+			
 			if(packet.start < packet.end) {
-				
+
 				boolean dontSend = false;
 				if(packet.getByte(0) == 0x50) {
-					
+
+					if(!ptc.connectionInfo.cacheInUse.getAndSet(true)) {
+						ptc.printLogMessage("Client requested caching mode");
+					}
+
 					int pos = 1;
 					long hash;
 					ConcurrentHashMap<Long,Boolean> hashes = ptc.connectionInfo.hashesReceived;
-					
+
 					short size = packet.getShort(pos);
 					pos += 2;
-					
-					if(!ptc.connectionInfo.cacheInUse.getAndSet(true)) {
-						ptc.printLogMessage("Cache requested by client");
-					}
-					
-					for(int cnt=0;cnt<size;cnt++) {
+
+					for(int cnt=0;cnt<(size/8);cnt++) {
 						hash = packet.getLong(pos);
+						//System.out.println("received hash: " + Long.toHexString(hash));
 						hashes.put(hash,true);
+						pos+=8;
 					}
 					dontSend = true;
 				}
-				
+
 				oldPacketIds.add(packet.buffer[packet.start & packet.mask]);
 				if(this.oldPacketIds.size() > 20) {
 					oldPacketIds.remove();
@@ -130,7 +147,12 @@ public class UpstreamBridge extends KillableThread {
 
 				if(!dontSend) {
 					fm.addPacketToHighQueue(out, packet, this);
-				}
+					/*try {
+						out.sendPacket(packet);
+					} catch (IOException ie) {
+						kill();
+					}*/
+				} 
 
 			}
 		}

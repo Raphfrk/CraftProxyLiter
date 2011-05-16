@@ -27,6 +27,7 @@ public class PassthroughConnection extends KillableThread {
 		connectionInfo.setPort(clientSocket.getPort());
 		this.fairnessManager = fairnessManager;
 		this.proxyListener = proxyListener;
+		setName("Passthrough connection - " + System.currentTimeMillis());
 		
 	}
 	
@@ -106,6 +107,9 @@ public class PassthroughConnection extends KillableThread {
 		KillableThread StCBridge = new DownstreamBridge(serverLocalSocket.pin, clientLocalSocket.pout, this, fairnessManager);
 		KillableThread CtSBridge = new UpstreamBridge(clientLocalSocket.pin, serverLocalSocket.pout, this, fairnessManager);
 		
+		StCBridge.setName("Server to client bridge");
+		CtSBridge.setName("Client to server bridge");
+		
 		StCBridge.start();
 		CtSBridge.start();
 		
@@ -114,6 +118,10 @@ public class PassthroughConnection extends KillableThread {
 				StCBridge.join(500);
 				CtSBridge.join(500);
 			} catch (InterruptedException ie) {
+				try {
+					Thread.sleep(200);
+				} catch (InterruptedException ie2) {
+				}
 				this.interrupt();
 			}
 			if(!StCBridge.isAlive()) {
@@ -148,6 +156,7 @@ public class PassthroughConnection extends KillableThread {
 		PacketFFKick kick = new PacketFFKick(message);
 		try {
 			socket.pout.sendPacket(kick);
+			socket.pout.flush();
 		} catch (IOException e) {
 			printLogMessage("Unable to send Kick packet: " + message);
 		}

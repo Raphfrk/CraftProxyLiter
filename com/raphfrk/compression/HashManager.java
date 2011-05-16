@@ -10,8 +10,8 @@ public class HashManager {
 			long hash = 0;
 			for(int b=0;b<8;b++) {
 				byte value = buffer[pos++];
-				hash = (hash >> 8) & 0x00FFFFFFFFFFFFFFL;
-				hash |= ((long)value)<<56;
+				hash = (hash << 8) & 0xFFFFFFFFFFFFFF00L;
+				hash |= ((long)value) & 0xFF;
 			}
 			hashes[a] = hash;
 		}

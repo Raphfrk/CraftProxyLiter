@@ -31,6 +31,7 @@ public class ProxyListener extends KillableThread {
 		this.port = RedirectManager.getPort(listenHostname);
 		this.listenHostname = listenHostname;
 		this.defaultHostname = defaultHostname;
+		setName("Proxy Listener");
 	}
 
 	ConcurrentHashMap<String,Long> lastLogin = new ConcurrentHashMap<String,Long>();
@@ -44,8 +45,11 @@ public class ProxyListener extends KillableThread {
 		// Add new packet types
 		
 		// Packet to send hash list to server
-		ProtocolUnitArray.ops[0x50] = new ProtocolUnitArray.Op[] {ProtocolUnitArray.Op.JUMP_FIXED,  ProtocolUnitArray.Op.INT_SIZED};
+		ProtocolUnitArray.ops[0x50] = new ProtocolUnitArray.Op[] {ProtocolUnitArray.Op.JUMP_FIXED,  ProtocolUnitArray.Op.SHORT_SIZED};
 		ProtocolUnitArray.params[0x50] = new int[] {1, 0};
+		
+		ProtocolUnitArray.ops[0x51] = new ProtocolUnitArray.Op[] {ProtocolUnitArray.Op.JUMP_FIXED,  ProtocolUnitArray.Op.INT_SIZED};
+		ProtocolUnitArray.params[0x51] = new int[] {14, 0};
 
 		ServerSocket listener = null;
 		try {
@@ -172,10 +176,15 @@ public class ProxyListener extends KillableThread {
 			}
 		}
 		
-		hs.writeFAT();
+		if(Globals.localCache()) {
+			hs.flushPending(true);
+			hs.writeFAT();
+		}
 		
 		if(fairnessManager != null) {
+			System.out.println("Killing fairness manager");
 			fairnessManager.killTimerAndJoin();
+			System.out.println("Fairness manager killed successfully");
 		}
 
 		interruptConnections();		

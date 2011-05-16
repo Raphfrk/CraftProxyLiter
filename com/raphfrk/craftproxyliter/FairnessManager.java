@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.raphfrk.protocol.KillableThread;
 import com.raphfrk.protocol.Packet;
@@ -17,17 +18,20 @@ public class FairnessManager {
 	ConcurrentLinkedQueue<Reference<byte[]>> largeBufferPool = new ConcurrentLinkedQueue<Reference<byte[]>>();
 	ConcurrentLinkedQueue<Reference<byte[]>> smallBufferPool = new ConcurrentLinkedQueue<Reference<byte[]>>();
 
+	AtomicInteger bufCalls = new AtomicInteger(0);
+	
 	public byte[] getBuffer(int size) {
-		if(size <= smallSize) {
+		//System.out.println("Buffer call: (" + size + ") " + bufCalls.incrementAndGet());
+		/*if(size <= smallSize) {
 			return getSmallBuffer();
 		} else if(size <= largeSize) {
 			return getLargeBuffer();
-		} else {
+		} else {*/
 			return new byte[size];
-		}
+		//}
 	}
 
-	public byte[] getLargeBuffer() {
+	private byte[] getLargeBuffer() {
 		Reference<byte[]> ref = largeBufferPool.poll();
 		if(ref == null) {
 			return new byte[largeSize];
@@ -48,7 +52,7 @@ public class FairnessManager {
 		}
 	}
 
-	public byte[] getSmallBuffer() {
+	private byte[] getSmallBuffer() {
 		Reference<byte[]> ref = smallBufferPool.poll();
 		if(ref == null) {
 			return new byte[smallSize];
@@ -95,18 +99,23 @@ public class FairnessManager {
 	FairnessManager() {
 		outputManager = new OutputManager();
 		outputManager.start();
+		outputManager.setName("Output Manager");
 	}
 
 	public void killTimerAndJoin() {
-		synchronized(outSync) {
-			outputManager.interrupt();
-			outSync.notifyAll();
-		}
-		try {
-			outputManager.join();
-		} catch (InterruptedException e) {
-			System.out.println("Fairness Manager Interrupted when waiting for timer to close");
-			Thread.currentThread().interrupt();
+		while(outputManager.isAlive()) {
+			synchronized(outSync) {
+				System.out.println("Interrupting output manager");
+				outputManager.interrupt();
+				outSync.notifyAll();
+			}
+			System.out.println("About to join against output manager");
+			try {
+				outputManager.join();
+			} catch (InterruptedException e) {
+				System.out.println("Fairness Manager Interrupted when waiting for timer to close");
+				Thread.currentThread().interrupt();
+			}
 		}
 	}
 
@@ -118,11 +127,10 @@ public class FairnessManager {
 
 			while(!killed()) {
 				
-				//System.out.println("Polling output packet queue");
 
 				FairnessEntry lowEntry = lowQueue.peek();
 				FairnessEntry highEntry = highQueue.peek();
-
+				
 				boolean highQueueHasPriority = true;
 
 				highQueueHasPriority = 

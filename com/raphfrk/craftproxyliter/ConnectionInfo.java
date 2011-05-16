@@ -9,6 +9,7 @@ public class ConnectionInfo {
 	
 	public ConcurrentLinkedQueue<Long> hashesToSend = new ConcurrentLinkedQueue<Long>();
 	public AtomicInteger saved = new AtomicInteger();
+	public AtomicInteger uploaded = new AtomicInteger();
 	public ConcurrentHashMap<Long,Boolean> hashesSent = new ConcurrentHashMap<Long,Boolean>();
 	public ConcurrentHashMap<Long,Boolean> hashesReceived = new ConcurrentHashMap<Long,Boolean>();
 	

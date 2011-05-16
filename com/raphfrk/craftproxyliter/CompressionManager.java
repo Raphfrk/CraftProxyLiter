@@ -2,6 +2,7 @@ package com.raphfrk.craftproxyliter;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.raphfrk.compression.Compressor;
 import com.raphfrk.protocol.KillableThread;
@@ -15,57 +16,67 @@ public class CompressionManager {
 	private final ProtocolOutputStream out;
 	private final PassthroughConnection ptc;
 	private final KillableThread t;
-	
+
 	private final Object compSync = new Object();
-	
+
 	CompressionManager(KillableThread t, PassthroughConnection ptc, FairnessManager fm, ProtocolOutputStream out) {
 		this.ptc = ptc;
 		this.fm = fm;
 		this.out = out;
 		this.t = t;
 		ct = new CompressionThread();
+		ct.setName("CompressionThread");
 		ct.start();
 	}
-	
+
 	public void killTimerAndJoin() {
+		ct.c.destroyPool();
 		ct.interrupt();
 		synchronized(compSync) {
 			compSync.notifyAll();
 		}
-		try {
-			ct.join();
-		} catch (InterruptedException e) {
-			System.out.println("Fairness Manager Interrupted when waiting for timer to close");
-			Thread.currentThread().interrupt();
+		while(ct.isAlive()) {
+			try {
+				ct.join();
+			} catch (InterruptedException e) {
+				System.out.println("Fairness Manager Interrupted when waiting for timer to close");
+				Thread.currentThread().interrupt();
+			}
 		}
 	}
-	
+
 	public void addToQueue(Packet p) {
-		queue.add(p);
-		compSync.notifyAll();
+		queue.add(p.clone(fm));
+		synchronized(compSync) {
+			compSync.notifyAll();
+		}
 	}
-	
+
 	ConcurrentLinkedQueue<Packet> queue = new ConcurrentLinkedQueue<Packet>();
-	
+
 	private class CompressionThread extends KillableThread {
 
+		Compressor c;
+
 		public void run() {
-			
-			ConcurrentHashMap<Long,Boolean> hashes = ptc.connectionInfo.hashesReceived;
-			Compressor c = new Compressor(hashes, fm, ptc.proxyListener.hs);
-			
+
+			c = new Compressor(ptc, fm, ptc.proxyListener.hs);
+			AtomicBoolean compressing = ptc.connectionInfo.cacheInUse;
+
 			while(!killed()) {
-				
+
 				Packet p = queue.poll();
 
 				if(p != null) {
 					int packetId = p.getByte(0) & 0xFF;
 					if(packetId == 0x33) {
-						if(!hashes.isEmpty()) {
+						if(compressing.get()) {
 							Packet compressed = c.compress(p);
 							fm.addPacketToLowQueue(out, compressed, t);
+							ptc.connectionInfo.uploaded.addAndGet(compressed.end - compressed.start);
 						} else {
 							fm.addPacketToLowQueue(out, p, t);
+							ptc.connectionInfo.uploaded.addAndGet(p.end - p.start);
 						}
 					} else if (packetId == 0x51) {
 						Packet decompressed = c.decompress(p, ptc);
@@ -73,19 +84,20 @@ public class CompressionManager {
 							ptc.printLogMessage("Unable to decompress cached packet");
 							ptc.interrupt();
 						} else {
-							ptc.printLogMessage("Decompressed packet successfully");
-							fm.addPacketToHighQueue(out, decompressed, t);
+							fm.addPacketToLowQueue(out, decompressed, t);
+							ptc.connectionInfo.uploaded.addAndGet(decompressed.end - decompressed.start);
 						}
 					} else {
 						fm.addPacketToLowQueue(out, p, t);
+						ptc.connectionInfo.uploaded.addAndGet(p.end - p.start);
 					}
 				}
-				
+
 				synchronized(compSync) {
-					if(!queue.isEmpty()) {
-						continue;
-					}
 					try {
+						if(!queue.isEmpty()) {
+							continue;
+						}
 						compSync.wait(1000);
 					} catch (InterruptedException e) {
 						kill();
@@ -95,5 +107,5 @@ public class CompressionManager {
 			}
 		}
 	}
-	
+
 }

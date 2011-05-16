@@ -11,6 +11,7 @@ import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.concurrent.ConcurrentHashMap;
@@ -83,7 +84,23 @@ public class HashStore {
 
 	byte[] getHash(PassthroughConnection ptc, long hash) {
 
+		if(FAT.containsKey(hash) && !ptc.connectionInfo.hashesSent.containsKey(hash)) {
+			Integer id = FAT.get(hash);
+			//System.out.println("FAT hit + load " + id);
+			if(id != null) {
+				byte[] block = loadFile(ptc, id, hash);
+				if(block == null) {
+					ptc.printLogMessage("FAT error, unable to find hash in file number " + id);
+				} else {
+					return block;
+				}
+			}
+		}
+		
+		//System.out.println("Hash sent?" + ptc.connectionInfo.hashesSent.containsKey(hash));
+
 		if(cache.containsKey(hash)) {
+			//System.out.println("Cache hit");
 			Reference<byte[]> ref = cache.get(hash);
 			if(ref != null) {
 				byte[] block = ref.get();
@@ -94,6 +111,7 @@ public class HashStore {
 		}
 
 		if(FAT.containsKey(hash)) {
+			//System.out.println("FAT hit");
 			Integer id = FAT.get(hash);
 			if(id != null) {
 				byte[] block = loadFile(ptc, id, hash);
@@ -105,6 +123,8 @@ public class HashStore {
 			}
 		}
 
+		//System.out.println("Cache/FAT miss");
+
 		return null;
 
 	}
@@ -112,70 +132,103 @@ public class HashStore {
 	ConcurrentLinkedQueue<byte[]> hardLoop = new ConcurrentLinkedQueue<byte[]>();
 	AtomicInteger hardLoopSize = new AtomicInteger(0);
 
+	ConcurrentHashMap<Integer,Object> fileLocks = new ConcurrentHashMap<Integer,Object>();
+
 	byte[] loadFile(PassthroughConnection ptc, int id, long requestedHash) {
 
-		File f = new File(cacheDir, "CPL" + id);
+		/*Object fileLock = fileLocks.get(id);
+		if(fileLock == null) {
+			fileLock = new Object();
+			Object oldLock = fileLocks.putIfAbsent(id, fileLock);
+			if(oldLock != null) {
+				fileLock = oldLock;
+			}
+		}*/
+		
+		//synchronized(fileLock) {
+			Reference<byte[]> ref = cache.get(requestedHash);
+			if(ref != null) {
+				byte[] block = ref.get();
+				if(block != null) {
+					return block;
+				}
+			}
+			if(cache.containsKey(requestedHash)) {
+				
+			}
+			System.out.println("Loading file: " + id);
 
-		FileInputStream fileIn;
-		GZIPInputStream gzin;
+			File f = new File(cacheDir, "CPL" + id);
 
-		try {
-			fileIn = new FileInputStream(f);
-			gzin = new GZIPInputStream(fileIn);
-		} catch (IOException e) {
-			return null;
-		}
-
-		DataInputStream in = new DataInputStream(gzin);
-
-		byte[] requestedBlock = null;
-
-		ConcurrentLinkedQueue<Long> sendQueue = ptc.connectionInfo.hashesToSend;
-		ConcurrentHashMap<Long,Boolean> sentAlready = ptc.connectionInfo.hashesSent;
-
-		boolean eof = false;
-		while(!eof) {
+			FileInputStream fileIn;
+			GZIPInputStream gzin;
 
 			try {
-				long hash = in.readLong();
-				byte[] block = new byte[2048];
-				in.read(block);
-				if(hash == requestedHash) {
-					requestedBlock = block;
-				}
-				cache.put(hash, new SoftReference<byte[]>(block));
-				if(!sentAlready.containsKey(hash)) {
-					sendQueue.add(hash);
-				}
-				hardLoop.add(block);
-				int loopSize = hardLoopSize.incrementAndGet();
-
-				while(loopSize > 32768) {
-					hardLoop.poll();
-					loopSize = hardLoopSize.decrementAndGet();
-				}
-			} catch (EOFException eof1) {
-				eof = true;
-				continue;
-			} catch (IOException ioe) {
-				if(in != null) {
-					try {
-						in.close();
-					} catch (IOException ioe2) {
-						return null;
-					}
-				}
+				fileIn = new FileInputStream(f);
+				gzin = new GZIPInputStream(fileIn);
+			} catch (IOException e) {
 				return null;
 			}
-		}
 
-		return requestedBlock;
+			DataInputStream in = new DataInputStream(gzin);
+
+			byte[] requestedBlock = null;
+
+			ConcurrentLinkedQueue<Long> sendQueue = ptc.connectionInfo.hashesToSend;
+			ConcurrentHashMap<Long,Boolean> sentAlready = ptc.connectionInfo.hashesSent;
+
+			boolean eof = false;
+			while(!eof) {
+
+				try {
+					long hash = in.readLong();
+					byte[] block = new byte[2048];
+					in.readFully(block);
+					if(hash == requestedHash) {
+						requestedBlock = block;
+					}
+					cache.put(hash, new SoftReference<byte[]>(block));
+					if(!sentAlready.containsKey(hash)) {
+						//System.out.println("Adding hash to send queue: " + Long.toHexString(hash));
+						sendQueue.add(hash);
+					}
+					hardLoop.add(block);
+					int loopSize = hardLoopSize.incrementAndGet();
+
+					while(loopSize > 32768) {
+						hardLoop.poll();
+						loopSize = hardLoopSize.decrementAndGet();
+					}
+				} catch (EOFException eof1) {
+					eof = true;
+					continue;
+				} catch (IOException ioe) {
+					if(in != null) {
+						try {
+							in.close();
+						} catch (IOException ioe2) {
+							return null;
+						}
+					}
+					return null;
+				}
+			}
+
+			return requestedBlock;
+		//}
 
 	}
+	
+	public boolean flushPending() {
+		return flushPending(false);
+	}
 
-	boolean flushPending() {
+	public boolean flushPending(boolean forceWrite) {
 
-		if(pendingLock.tryLock()) {
+		if(forceWrite || pendingLock.tryLock()) {
+			if(forceWrite) {
+				pendingLock.lock();
+			}
 			try {
 
 				int id = fileId.getAndIncrement();
@@ -211,7 +264,7 @@ public class HashStore {
 					if(current != null) {
 						Reference<byte[]> ref = cache.get(current);
 						byte[] block = ref.get();
-						if(block != null) {
+						if(block != null && block.length == 2048) {
 
 							try {
 								out.writeLong(current);
@@ -260,6 +313,7 @@ public class HashStore {
 				pendingLock.unlock();
 			}
 		} else {
+			//System.out.println("Unable to flush pending");
 			return true;
 		}
 
@@ -291,6 +345,8 @@ public class HashStore {
 
 	public boolean writeFAT() {
 
+		//System.out.println("About to write FAT");
+
 		File[] files = cacheDir.listFiles();
 		Arrays.sort(files, fileCompare);
 
@@ -311,12 +367,12 @@ public class HashStore {
 
 		while(itr.hasNext()) {
 			Long current = itr.next();
-			Integer fileId = FAT.get(current);
+			Integer id = FAT.get(current);
 			try {
-				if(fileId != null && current != null) {
-					if(getFile(fileId).isFile()) {
+				if(id != null && current != null) {
+					if(getFile(id).isFile()) {
 						out.writeLong(current);
-						out.writeInt(fileId);
+						out.writeInt(id);
 					}
 				}
 			} catch (IOException ioe) {
@@ -339,10 +395,16 @@ public class HashStore {
 			return false;
 		}
 
+		//System.out.println("FAT write completed successfully");
+
 		return true;
 	}
 
 	public boolean readFAT() {
+
+		//System.out.println("Reading FAT from disk");
+
+		int entries= 0;
 
 		File file = new File(cacheDir, "FAT");
 
@@ -365,14 +427,17 @@ public class HashStore {
 
 			try {
 				long hash = in.readLong();
-				int fileId = in.readInt();
-				FAT.put(hash, fileId);
+				int id = in.readInt();
+				FAT.put(hash, id);
 				FATList.add(hash);
+				entries++;
+				//System.out.println("FAT: " + Long.toHexString(hash));
 			} catch (EOFException eofe) {
+				System.out.println("EOF FAT");
 				eof = true;
 				continue;
 			} catch (IOException ioe) {
-
+				System.out.println("IO exception reading FAT");
 			}
 
 		}
@@ -384,6 +449,8 @@ public class HashStore {
 		} catch (IOException ioe) {
 			return false;
 		}
+
+		//System.out.println("Entries: " + entries);
 
 		return true;
 

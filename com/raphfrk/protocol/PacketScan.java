@@ -34,8 +34,12 @@ public class PacketScan {
 		
 		int packetId = buffer[position & mask] & 0xff;
 
-		/*
-		System.out.println(packet + " Packet Id" + packetId);
+		/*if(packetId == 0x50 || packetId == 0x51) {
+			System.err.println("Packet 0x" + Integer.toHexString(packetId) + " received");
+			System.out.println("Packet 0x" + Integer.toHexString(packetId) + " received");
+		}*/
+		
+		/*System.out.println(packet + " Packet Id " + Integer.toHexString(packetId));
 		
 		StringBuilder sb = new StringBuilder(packet + " Data to process: ");
 		for(int cnt=start;cnt<start+dataLength;cnt++) {
@@ -49,8 +53,9 @@ public class PacketScan {
 
 		if(ops == null) {
 			if(dataLength > 0) {
-				System.out.println(packet + " Unknown packet Id " + packetId);
-				System.err.println(packet + " Unknown packet Id " + packetId);
+				System.out.println(packet + " Unknown packet Id " + Integer.toHexString(packetId));
+				System.err.println(packet + " Unknown packet Id " + Integer.toHexString(packetId));
+				throw new IllegalStateException("Unknown packet id + " + Integer.toHexString(packetId));
 			}
 			return null;
 		}
@@ -113,6 +118,10 @@ public class PacketScan {
 			}
 			case INT_SIZED: {
 				int size = getInt(buffer, position, mask);
+				if(packetId == 0x50) {
+					System.out.println("Size: " + size);
+					System.err.println("Size: " + size);
+				}
 				position = (position + 4);
 				if(size > maxPacketSize) {
 					if(position - start <= dataLength) {

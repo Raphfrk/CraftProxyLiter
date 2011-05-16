@@ -81,5 +81,26 @@ public class HashGenerator implements Callable<Long> {
 		}
 		
 	}
+	
+	static void copyFromBuffer(byte[] buffer, int blockNum, byte[] block) {
+		
+		int start = startPoint[blockNum];
+		int step = step1[blockNum];
+		
+		int pos = start;
+		
+		int count = 0;
+		int blockPos = 0;
+		
+		for(int outer=0;outer<256;outer++) {
+			for(int inner=0;inner<8;inner++) {
+				block[blockPos++] = buffer[pos];
+				count++;
+				pos++;
+			}
+			pos+=step;
+		}
+		
+	}
 
 }
