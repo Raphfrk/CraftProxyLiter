@@ -27,6 +27,7 @@ public class CraftProxyGUI extends JFrame implements WindowListener, ActionListe
 	JPanel filePanel;
 	JTextField currentSize;
 	JTextField desiredSize;
+	JTextField latencyBox;
 	JLabel localServerName;
 	JTextField localServerPortnum;
 	JLabel info;
@@ -54,6 +55,7 @@ public class CraftProxyGUI extends JFrame implements WindowListener, ActionListe
 		int defaultPort = pf.getInt("connect_port", 20000);
 		int listenPort = pf.getInt("listen_port", 25565);
 		int desired = pf.getInt("cache_size", 48);
+		int latency = pf.getInt("buffer_latency" , 10);
 
 		setTitle("CraftProxyLite Local Cache Mode - v" + VersionNumbering.version);
 		setSize(450,325);
@@ -104,6 +106,9 @@ public class CraftProxyGUI extends JFrame implements WindowListener, ActionListe
 		desiredSize = new JTextField(Integer.toString(desired));
 		desiredSize.setBorder(new TitledBorder("Max Size (MB)"));
 
+		latencyBox = new JTextField(Integer.toString(latency));
+		latencyBox.setBorder(new TitledBorder("Buffer latency (ms)"));
+		
 		connect = new JButton(buttonText);
 		connect.addActionListener(this);
 		
@@ -111,9 +116,10 @@ public class CraftProxyGUI extends JFrame implements WindowListener, ActionListe
 		filePanel.setLayout(new BorderLayout());
 		JPanel fileLinePanel = new JPanel();
 		fileLinePanel.setBorder(new TitledBorder("Cache Size"));
-		fileLinePanel.setLayout(new GridLayout(1,2));
+		fileLinePanel.setLayout(new GridLayout(1,3));
 		fileLinePanel.add(currentSize);
 		fileLinePanel.add(desiredSize);
+		fileLinePanel.add(latencyBox);
 		filePanel.add(fileLinePanel, BorderLayout.CENTER);
 		filePanel.add(connect, BorderLayout.PAGE_END);
 		
@@ -188,6 +194,7 @@ public class CraftProxyGUI extends JFrame implements WindowListener, ActionListe
 		if(action.getSource().equals(connect)) {
 
 			int desired = 48;
+			int latency = 10;
 			try {			
 				pf.setString("connect_hostname", serverName.getText());
 				pf.setInt("connect_port", Integer.parseInt(portNum.getText()));
@@ -198,8 +205,16 @@ public class CraftProxyGUI extends JFrame implements WindowListener, ActionListe
 					desired = 48;
 					desiredSize.setText("48");
 				}
+				try {
+					latency = Integer.parseInt(latencyBox.getText());
+				} catch (NumberFormatException nfe) {
+					latency = 10;
+					latencyBox.setText("10");
+				}
 				pf.setInt("cache_size", desired);
+				pf.setInt("buffer_latency", latency);
 				desiredSize.setEditable(false);
+				latencyBox.setEditable(false);
 				pf.save();
 			} catch (NumberFormatException nfe) {
 			}
@@ -211,6 +226,7 @@ public class CraftProxyGUI extends JFrame implements WindowListener, ActionListe
 				final String distantServer = serverName.getText() + ":" + portNum.getText();
 				final String localServer = localServerPortnum.getText();
 				final String cacheSize = Integer.toString(desired * 1024 * 1024);
+				final String latencyString = Integer.toString(latency);
 
 				serverMainThread = new Thread(new Runnable() {
 
@@ -224,7 +240,9 @@ public class CraftProxyGUI extends JFrame implements WindowListener, ActionListe
 								"bridge_connection",
 								"auth_off",
 								"cache_limit",
-								cacheSize
+								cacheSize,
+								"bufferlatency",
+								latencyString
 						};
 
 						Main.main(args, false);
@@ -238,6 +256,7 @@ public class CraftProxyGUI extends JFrame implements WindowListener, ActionListe
 				safeSetButton("Stopping");
 				serverMainThread.interrupt();
 				desiredSize.setEditable(true);
+				latencyBox.setEditable(true);
 			}
 		}
 	}
