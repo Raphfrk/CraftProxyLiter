@@ -55,7 +55,7 @@ public class CraftProxyGUI extends JFrame implements WindowListener, ActionListe
 		int listenPort = pf.getInt("listen_port", 25565);
 		int desired = pf.getInt("cache_size", 48);
 
-		setTitle("CraftProxyLite Local Cache Mode");
+		setTitle("CraftProxyLite Local Cache Mode - v" + VersionNumbering.version);
 		setSize(450,325);
 		setLocation(40,150);
 
