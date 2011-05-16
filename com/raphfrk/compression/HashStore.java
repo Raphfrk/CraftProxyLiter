@@ -136,26 +136,25 @@ public class HashStore {
 
 	byte[] loadFile(PassthroughConnection ptc, int id, long requestedHash) {
 
-		/*Object fileLock = fileLocks.get(id);
+		Object fileLock = fileLocks.get(id);
 		if(fileLock == null) {
 			fileLock = new Object();
 			Object oldLock = fileLocks.putIfAbsent(id, fileLock);
 			if(oldLock != null) {
 				fileLock = oldLock;
 			}
-		}*/
+		}
 		
-		//synchronized(fileLock) {
+		synchronized(fileLock) {
+			ConcurrentHashMap<Long,Boolean> received = ptc.connectionInfo.hashesReceived;
 			Reference<byte[]> ref = cache.get(requestedHash);
-			if(ref != null) {
+			if(ref != null && received.containsKey(requestedHash)) {
 				byte[] block = ref.get();
 				if(block != null) {
 					return block;
 				}
 			}
-			if(cache.containsKey(requestedHash)) {
-				
-			}
+
 			System.out.println("Loading file: " + id);
 
 			File f = new File(cacheDir, "CPL" + id);
@@ -182,12 +181,22 @@ public class HashStore {
 
 				try {
 					long hash = in.readLong();
-					byte[] block = new byte[2048];
-					in.readFully(block);
+					byte[] block = null;
+					ref = cache.get(hash);
+					if(ref != null) {
+						block = ref.get();
+					}
+					if(block == null) {
+						block = new byte[2048];
+						in.readFully(block);
+					} else {
+						in.skip(2048);
+					}
 					if(hash == requestedHash) {
 						requestedBlock = block;
 					}
 					cache.put(hash, new SoftReference<byte[]>(block));
+					received.put(hash, true);
 					if(!sentAlready.containsKey(hash)) {
 						//System.out.println("Adding hash to send queue: " + Long.toHexString(hash));
 						sendQueue.add(hash);
@@ -215,7 +224,7 @@ public class HashStore {
 			}
 
 			return requestedBlock;
-		//}
+		}
 
 	}
 	

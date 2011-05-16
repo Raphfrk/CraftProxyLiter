@@ -126,9 +126,11 @@ public class Compressor {
 		outPacket.end+=newSize;
 		ptc.connectionInfo.saved.addAndGet(newSize - length);
 		
+		int percent = (int)(((100.0)*ptc.connectionInfo.saved.get())/ptc.connectionInfo.uploaded.get());
 		if(Main.craftGUI != null) {
-			int percent = (int)(((100.0)*ptc.connectionInfo.saved.get())/ptc.connectionInfo.uploaded.get());
 			Main.craftGUI.safeSetStatus("<html>Saved " + (ptc.connectionInfo.saved.get()/1024) + " kB<br>Compression of " + percent + "</html>");
+		} else {
+			//ptc.printLogMessage("Saved: " + percent);
 		}
 		
 		//System.out.println("Saved % = " + ((100.0)*ptc.connectionInfo.saved.get())/ptc.connectionInfo.uploaded.get());

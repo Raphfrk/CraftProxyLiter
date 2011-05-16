@@ -111,7 +111,7 @@ public class MaxLatencyBufferedOutputStream extends BufferedOutputStream {
 							lock.unlock();
 						}
 					} else {
-						System.out.println("Lock failed");
+						//System.out.println("Lock failed");
 					}
 
 				}
