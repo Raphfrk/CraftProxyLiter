@@ -61,6 +61,16 @@ public class Globals {
 		monitor = newMonitor;
 	}
 	
+	static private int compressionLevel = 1;
+	
+	public synchronized static int getCompressionLevel() {
+		return compressionLevel;
+	}
+	
+	public synchronized static void setCompressionLevel( int newCompressionLevel ) {
+		compressionLevel = newCompressionLevel;
+	}
+	
 	static private long latency = 20;
 
 	public synchronized static long getBufferLatency() {

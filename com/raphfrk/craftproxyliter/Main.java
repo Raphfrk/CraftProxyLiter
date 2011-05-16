@@ -98,6 +98,7 @@ public class Main {
 					else if( args[pos].equals("dimension"))       { Globals.setDimension(Byte.parseByte(args[pos+1])); pos++;}
 					else if( args[pos].equals("monitor"))       { Globals.setMonitor(Integer.parseInt(args[pos+1])); pos++;}
 					else if( args[pos].equals("bufferlatency"))       { Globals.setBufferLatency(Integer.parseInt(args[pos+1])); pos++;}
+					else if( args[pos].equals("compression_level"))       { Globals.setCompressionLevel(Integer.parseInt(args[pos+1])); pos++;}
 					else if( args[pos].equals("seed"))       { Globals.setSeed(Long.parseLong(args[pos+1])); pos++;}
 					else if( args[pos].equals("log"))              { Logging.setFilename(args[pos+1]) ; pos++;}
 					else                                        {System.out.println("Unknown field: " + args[pos]); System.exit(0);}

@@ -11,6 +11,7 @@ import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 
 import com.raphfrk.craftproxyliter.FairnessManager;
+import com.raphfrk.craftproxyliter.Globals;
 import com.raphfrk.craftproxyliter.Main;
 import com.raphfrk.craftproxyliter.PassthroughConnection;
 import com.raphfrk.protocol.Packet;
@@ -33,7 +34,7 @@ public class Compressor {
 
 	public Compressor(PassthroughConnection ptc, FairnessManager fm, HashStore hs) {
 
-		this.d = new Deflater(1);
+		this.d = new Deflater(Globals.getCompressionLevel());
 		this.i = new Inflater();
 		this.fm = fm;
 		this.hs = hs;
