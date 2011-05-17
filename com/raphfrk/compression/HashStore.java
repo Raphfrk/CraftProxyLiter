@@ -23,6 +23,7 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import com.raphfrk.craftproxyliter.Globals;
+import com.raphfrk.craftproxyliter.Main;
 import com.raphfrk.craftproxyliter.PassthroughConnection;
 
 public class HashStore {
@@ -303,6 +304,7 @@ public class HashStore {
 				}
 
 				fileUse.addAndGet(f.length());
+				updateGUIDisk();
 
 				for(Long current : toWrite) {
 					if(current != null) {
@@ -345,12 +347,23 @@ public class HashStore {
 			File current = files[cnt++];
 			if(current.isFile() && !current.getName().equals("FAT")) {
 				size -= current.length();
+				current.delete();
 			}
 		}
 
 		fileUse.set(size);
+		updateGUIDisk();
 
 	}
+	
+	void updateGUIDisk() {
+		if(Main.craftGUI != null) {
+			long size = (long)((fileUse.get()/10.24)/1024);
+			double sizeDecimal = size/100.0;
+			Main.craftGUI.safeSetFileSize(Double.toString(sizeDecimal));
+		}
+	}
+
 
 	public boolean writeFAT() {
 

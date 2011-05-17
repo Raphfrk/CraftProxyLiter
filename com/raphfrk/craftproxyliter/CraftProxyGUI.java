@@ -55,9 +55,9 @@ public class CraftProxyGUI extends JFrame implements WindowListener, ActionListe
 		int defaultPort = pf.getInt("connect_port", 20000);
 		int listenPort = pf.getInt("listen_port", 25565);
 		int desired = pf.getInt("cache_size", 48);
-		int latency = pf.getInt("buffer_latency" , 10);
+		int latency = pf.getInt("buffer_latency" , 0);
 
-		setTitle("CraftProxyLite Local Cache Mode - v" + VersionNumbering.version);
+		setTitle("CraftProxyLiter Local Cache Mode - v" + VersionNumbering.version);
 		setSize(450,325);
 		setLocation(40,150);
 
@@ -194,7 +194,7 @@ public class CraftProxyGUI extends JFrame implements WindowListener, ActionListe
 		if(action.getSource().equals(connect)) {
 
 			int desired = 48;
-			int latency = 10;
+			int latency = 0;
 			try {			
 				pf.setString("connect_hostname", serverName.getText());
 				pf.setInt("connect_port", Integer.parseInt(portNum.getText()));
@@ -208,8 +208,8 @@ public class CraftProxyGUI extends JFrame implements WindowListener, ActionListe
 				try {
 					latency = Integer.parseInt(latencyBox.getText());
 				} catch (NumberFormatException nfe) {
-					latency = 10;
-					latencyBox.setText("10");
+					latency = 0;
+					latencyBox.setText("0");
 				}
 				pf.setInt("cache_size", desired);
 				pf.setInt("buffer_latency", latency);
