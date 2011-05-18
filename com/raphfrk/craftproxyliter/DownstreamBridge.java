@@ -3,9 +3,15 @@ package com.raphfrk.craftproxyliter;
 import java.io.EOFException;
 import java.io.IOException;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
+import com.raphfrk.protocol.EntityMap;
 import com.raphfrk.protocol.KillableThread;
 import com.raphfrk.protocol.Packet;
+import com.raphfrk.protocol.Packet1DDestroyEntity;
+import com.raphfrk.protocol.Packet32PreChunk;
+import com.raphfrk.protocol.Packet46Bed;
 import com.raphfrk.protocol.ProtocolInputStream;
 import com.raphfrk.protocol.ProtocolOutputStream;
 
@@ -64,13 +70,64 @@ public class DownstreamBridge extends KillableThread {
 				boolean dontSend = false;
 
 				int packetId = packet.getByte(0) & 0xFF;
+				
+				if(packetId == 0x46) {
+					System.out.println("Rain packet detected: " + packet.getByte(1));
+					
+				}
+
+				if(packetId == 0x32) {
+					int x = packet.getInt(1);
+					int z = packet.getInt(5);
+					boolean mode = packet.getByte(9) != 0;
+					if(mode) {
+						if(!ptc.connectionInfo.addChunk(x, z)) {
+							ptc.printLogMessage("Chunk initialise packet sent for already initialised chunk " + x + ", " + z);
+						}
+					} else {
+						if(!ptc.connectionInfo.removeChunk(x, z)) {
+							ptc.printLogMessage("Chunk deallocate packet sent for unallocated chunk " + x + ", " + z);
+						}
+					}
+				} else if(packetId == 0x32 || packetId == 0x51) {
+					int x = packet.getInt(1);
+					int z = packet.getInt(7);
+					if(!ptc.connectionInfo.containsChunk(x, z)) {
+						ptc.printLogMessage("Chunk update packet sent for unallocated chunk " + x + ", " + z + " adding fake init packet");
+					}
+					Packet fakeInit = new Packet32PreChunk(x, z, true);
+					cm.addToQueue(fakeInit);
+				}
+
+				// Map entity Ids
+				int clientPlayerId = ptc.connectionInfo.clientPlayerId;
+				int serverPlayerId = ptc.connectionInfo.serverPlayerId;
+				Set<Integer> activeEntityIds = ptc.connectionInfo.activeEntities;
+
+
+				int[] entityIdArray = EntityMap.entityIds[packetId];
+				if(entityIdArray != null) {
+					for(int pos : entityIdArray) {
+						int id = packet.getInt(pos);
+						if(id == clientPlayerId) {
+							packet.setInt(pos, serverPlayerId);
+							updateEntityId(ptc, activeEntityIds, packetId, serverPlayerId);
+						} else if(id == serverPlayerId) {
+							packet.setInt(pos, clientPlayerId);
+							updateEntityId(ptc, activeEntityIds, packetId, clientPlayerId);
+						} else {
+							updateEntityId(ptc, activeEntityIds, packetId, id);
+						}
+					}
+				}
+
 				if(((packetId >= 0x32 && packetId < 0x36) || packetId == 0x82) || (packetId == 0x51)) {
 
 					cm.addToQueue(packet);
 
 					dontSend = true;
 				}
-
+				
 				oldPacketIds.add(packet.buffer[packet.start & packet.mask]);
 				if(this.oldPacketIds.size() > 20) {
 					oldPacketIds.remove();
@@ -78,6 +135,37 @@ public class DownstreamBridge extends KillableThread {
 
 				if(!dontSend) {
 					ptc.connectionInfo.uploaded.addAndGet(packet.end - packet.start);
+
+					if(packetId == 0xFF) {
+						String message = packet.getString16(1);
+						String newHostname = redirectDetected(message, ptc);
+						ptc.printLogMessage("Redirect detected: " + newHostname);
+						ptc.connectionInfo.setHostname(newHostname);
+						ptc.connectionInfo.redirect = true;
+						if(newHostname != null) {
+							cm.killTimerAndJoin();
+							List<Integer> entityIds = ptc.connectionInfo.clearEntities();
+							for(int id : entityIds) {
+								if(id != clientPlayerId) {
+									Packet destroy = new Packet1DDestroyEntity(id);
+									fm.addPacketToHighQueue(out, destroy, this);
+								}
+							}
+							List<Long> activeChunks = ptc.connectionInfo.clearChunks();
+							for(Long chunk : activeChunks) {
+								int x = ConnectionInfo.getX(chunk);
+								int z = ConnectionInfo.getZ(chunk);
+								Packet unload = new Packet32PreChunk(x, z, false);
+								fm.addPacketToHighQueue(out, unload, this);
+							}
+							Packet packetBed = new Packet46Bed(2);
+							fm.addPacketToHighQueue(out, packetBed, this);
+							kill();
+							continue;
+						}
+
+					} 
+
 					fm.addPacketToHighQueue(out, packet, this);
 					/*try {
 						out.sendPacket(packet);
@@ -97,9 +185,64 @@ public class DownstreamBridge extends KillableThread {
 			ptc.printLogMessage("Unable to flush output stream");
 		}
 
-		System.out.println("About to kill compression manager");
 		cm.killTimerAndJoin();
 
+		synchronized(out) {
+			try {
+				out.flush();
+				out.close();
+			} catch (IOException ioe) {
+				ptc.printLogMessage("Unable to close output stream properly");
+			}
+		}
+
+	}
+
+	static void updateEntityId(PassthroughConnection ptc, Set<Integer> activeEntityIds, int packetId, int id) {
+		if(packetId == 0x0d) {
+			if(!activeEntityIds.remove(id)) {
+				ptc.printLogMessage("Attempted to destroy non-existant entity " + id);
+			}
+		} else {
+			if(activeEntityIds.add(id)) {
+			}
+		}
+	}
+
+	public static String redirectDetected(String reason, PassthroughConnection ptc) {
+
+		String hostName = null;
+		int portNum = -1;
+
+		if(ptc != null && (!Globals.isQuiet())) {
+			ptc.printLogMessage( "Kicked with: " + reason ); 
+		}
+
+		if( reason.indexOf("[Serverport]") == 0 ) {
+			String[] split = reason.split( ":" );
+			if( split.length == 3 ) {
+				hostName = split[1].trim();
+				try { 
+					portNum = Integer.parseInt( split[2].trim() );
+				} catch (Exception e) { portNum = -1; };
+			} else  if( split.length == 2 ) {
+				hostName = split[1].trim();
+				try {
+					portNum = 25565;
+				} catch (Exception e) { portNum = -1; };
+			}
+		}
+
+		if(reason.startsWith("[Serverport] : ") && reason.indexOf(",")>=0) {
+			return reason.substring(15).trim();
+		}
+
+		if( portNum != -1 ) {
+			return hostName + ":" + portNum;
+		} else {
+			return null;
+
+		}
 	}
 
 }

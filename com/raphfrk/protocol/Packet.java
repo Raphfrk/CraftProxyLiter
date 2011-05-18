@@ -77,7 +77,33 @@ public class Packet {
 		start = 0;
 		end = 0;
 	}
+	
+	public void setByte(int pos, byte b) {
+		buffer[(pos++) & mask] = b;
+	}
 
+	public void setShort(int pos, short s) {
+		buffer[(pos++) & mask] = (byte)(s >> 8);
+		buffer[(pos++) & mask] = (byte)(s >> 0);
+	}
+
+	public void setInt(int pos, int i) {
+		buffer[(pos++) & mask] = (byte)(i >> 24);
+		buffer[(pos++) & mask] = (byte)(i >> 16);
+		buffer[(pos++) & mask] = (byte)(i >> 8);
+		buffer[(pos++) & mask] = (byte)(i >> 0);
+	}	
+	
+	public void setLong(int pos, long i) {
+		buffer[(pos++) & mask] = (byte)(i >> 56);
+		buffer[(pos++) & mask] = (byte)(i >> 48);
+		buffer[(pos++) & mask] = (byte)(i >> 40);
+		buffer[(pos++) & mask] = (byte)(i >> 32);
+		buffer[(pos++) & mask] = (byte)(i >> 24);
+		buffer[(pos++) & mask] = (byte)(i >> 16);
+		buffer[(pos++) & mask] = (byte)(i >> 8);
+		buffer[(pos++) & mask] = (byte)(i >> 0);
+	}	
 
 	public void writeByte(byte b) {
 		buffer[(end++) & mask] = b;

@@ -3,9 +3,11 @@ package com.raphfrk.craftproxyliter;
 import java.io.EOFException;
 import java.io.IOException;
 import java.util.LinkedList;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import com.raphfrk.protocol.EntityMap;
 import com.raphfrk.protocol.KillableThread;
 import com.raphfrk.protocol.Packet;
 import com.raphfrk.protocol.ProtocolInputStream;
@@ -146,12 +148,30 @@ public class UpstreamBridge extends KillableThread {
 				}
 
 				if(!dontSend) {
+					int packetId = packet.getByte(0) & 0xFF;
+					
+					if(packetId == 0x10) {
+						ptc.connectionInfo.holding = packet.getShort(1);
+					}
+					
+					// Map entity Ids
+					int clientPlayerId = ptc.connectionInfo.clientPlayerId;
+					int serverPlayerId = ptc.connectionInfo.serverPlayerId;
+
+					if(clientPlayerId != serverPlayerId) {
+						int[] entityIdArray = EntityMap.entityIds[packetId];
+						if(entityIdArray != null) {
+							for(int pos : entityIdArray) {
+								int id = packet.getInt(pos);
+								if(id == clientPlayerId) {
+									packet.setInt(pos, serverPlayerId);
+								} else if(id == serverPlayerId) {
+									packet.setInt(pos, clientPlayerId);
+								}
+							}
+						}
+					}
 					fm.addPacketToHighQueue(out, packet, this);
-					/*try {
-						out.sendPacket(packet);
-					} catch (IOException ie) {
-						kill();
-					}*/
 				} 
 
 			}

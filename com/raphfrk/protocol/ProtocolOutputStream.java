@@ -21,6 +21,12 @@ public class ProtocolOutputStream {
 		int start = packet.start & packet.mask;
 		int end = packet.end & packet.mask;
 		
+		/*int packetId = packet.buffer[0] & 0xFF;
+		
+		if(packetId == 0x46) {
+			System.out.println("Sending rain update packet: " + packet.buffer[1]);
+		}*/
+		
 		if(start > end) {
 			buffered.write(packet.buffer, start, top - start);
 			buffered.write(packet.buffer, 0, end);
