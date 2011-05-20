@@ -64,6 +64,8 @@ public class Main {
 			Logging.log("    info:                 Gives more information");
 			Logging.log("    debug:                Gives debug info");
 			Logging.log("    bufferlatency:        Gives more information");
+			Logging.log("    log_time_off:         Turns off time for logging");
+
 			
 					
 					
@@ -101,6 +103,7 @@ public class Main {
 					else if( args[pos].equals("compression_level"))       { Globals.setCompressionLevel(Integer.parseInt(args[pos+1])); pos++;}
 					else if( args[pos].equals("seed"))       { Globals.setSeed(Long.parseLong(args[pos+1])); pos++;}
 					else if( args[pos].equals("blockredirects"))       { Globals.setAllowRedirect(false);}
+					else if( args[pos].equals("log_time_off"))       { Globals.setLogTime(false);}
 					else if( args[pos].equals("log"))              { Logging.setFilename(args[pos+1]) ; pos++;}
 					else                                        {System.out.println("Unknown field: " + args[pos]); System.exit(0);}
 

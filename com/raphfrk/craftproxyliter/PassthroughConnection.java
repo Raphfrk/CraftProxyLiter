@@ -170,10 +170,11 @@ public class PassthroughConnection extends KillableThread {
 
 	public synchronized void printLogMessage(String message) {
 		String username = (connectionInfo==null)?null:(connectionInfo.getUsername());
+		String timeString = (Globals.logTime())?("[" + shortTime.format(new Date()) + "] "):"";
 		if(username == null) {
-			Logging.log("[" + shortTime.format(new Date()) + "] " + connectionInfo.getIP() + "/" + connectionInfo.getPort() + ": " + message);
+			Logging.log(timeString + connectionInfo.getIP() + "/" + connectionInfo.getPort() + ": " + message);
 		} else {
-			Logging.log("[" + shortTime.format(new Date()) + "] " + connectionInfo.getIP() + "/" + connectionInfo.getPort() + " (" + username + "): " + message);
+			Logging.log(timeString + connectionInfo.getIP() + "/" + connectionInfo.getPort() + " (" + username + "): " + message);
 		}
 	}
 

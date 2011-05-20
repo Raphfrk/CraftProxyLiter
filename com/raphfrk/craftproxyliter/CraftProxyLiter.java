@@ -31,6 +31,7 @@ public class CraftProxyLiter extends JavaPlugin {
 
 		String singleOptions[] = new String[] {
 			    "auth_off",
+			    "log_time_off",
 			    "staticlocalhost",
 			    "bridge_connection",
 			    "quiet",
@@ -71,7 +72,7 @@ public class CraftProxyLiter extends JavaPlugin {
 		args.add(pf.getString("default_server", "25565"));
 		
 		for(String current : singleOptions) {
-			Boolean temp = current.equals("auth_off");
+			Boolean temp = current.equals("log_time_off") || current.equals("auth_off");
 
 			temp = pf.getBoolean(current, temp);
 			if(temp) {

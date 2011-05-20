@@ -289,5 +289,14 @@ public class Globals {
 		Globals.allowRedirect = allowRedirect;
 	}
 	
+	static boolean logTime = true;
+	static public Boolean logTime() {
+		return logTime;
+	}
+	
+	static public void setLogTime(boolean logTime) {
+		Globals.logTime = logTime;
+	}
+	
 	
 }
