@@ -40,7 +40,7 @@ public class DownstreamBridge extends KillableThread {
 
 		Packet packet = new Packet();
 		Packet packetBackup = packet;
-
+		
 		while(!killed()) {
 
 			try {
@@ -71,11 +71,6 @@ public class DownstreamBridge extends KillableThread {
 
 				int packetId = packet.getByte(0) & 0xFF;
 				
-				if(packetId == 0x46) {
-					System.out.println("Rain packet detected: " + packet.getByte(1));
-					
-				}
-
 				if(packetId == 0x32) {
 					int x = packet.getInt(1);
 					int z = packet.getInt(5);
@@ -186,15 +181,6 @@ public class DownstreamBridge extends KillableThread {
 		}
 
 		cm.killTimerAndJoin();
-
-		synchronized(out) {
-			try {
-				out.flush();
-				out.close();
-			} catch (IOException ioe) {
-				ptc.printLogMessage("Unable to close output stream properly");
-			}
-		}
 
 	}
 

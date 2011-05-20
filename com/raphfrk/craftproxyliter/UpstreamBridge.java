@@ -173,7 +173,6 @@ public class UpstreamBridge extends KillableThread {
 					}
 					fm.addPacketToHighQueue(out, packet, this);
 				} 
-
 			}
 		}
 

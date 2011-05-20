@@ -63,7 +63,7 @@ public class CompressionManager {
 			c = new Compressor(ptc, fm, ptc.proxyListener.hs);
 			AtomicBoolean compressing = ptc.connectionInfo.cacheInUse;
 
-			while(!killed()) {
+			while((!queue.isEmpty()) || (!killed())) {
 
 				Packet p = queue.poll();
 
@@ -93,15 +93,17 @@ public class CompressionManager {
 					}
 				}
 
-				synchronized(compSync) {
-					try {
-						if(!queue.isEmpty()) {
+				if(!killed()) {
+					synchronized(compSync) {
+						try {
+							if(!queue.isEmpty()) {
+								continue;
+							}
+							compSync.wait(1000);
+						} catch (InterruptedException e) {
+							kill();
 							continue;
 						}
-						compSync.wait(1000);
-					} catch (InterruptedException e) {
-						kill();
-						continue;
 					}
 				}
 			}

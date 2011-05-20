@@ -73,10 +73,11 @@ public class FairnessManager {
 		}
 	}
 
-	private ConcurrentLinkedQueue<FairnessEntry> lowQueue = new ConcurrentLinkedQueue<FairnessEntry>();
+	/*private ConcurrentLinkedQueue<FairnessEntry> lowQueue = new ConcurrentLinkedQueue<FairnessEntry>();
 	private ConcurrentLinkedQueue<FairnessEntry> highQueue = new ConcurrentLinkedQueue<FairnessEntry>();
 
 	final private Object outSync = new Object();
+	*/
 
 	boolean addPacketToLowQueue(ProtocolOutputStream pout, Packet p, KillableThread t) {
 		boolean r = true;
@@ -110,15 +111,17 @@ public class FairnessManager {
 		return r;
 	}
 
-	private final OutputManager outputManager;
+	//private final OutputManager outputManager;
 
 	FairnessManager() {
+		/*
 		outputManager = new OutputManager();
 		outputManager.start();
 		outputManager.setName("Output Manager");
+		*/
 	}
 
-	public void killTimerAndJoin() {
+	/*public void killTimerAndJoin() {
 		while(outputManager.isAlive()) {
 			synchronized(outSync) {
 				System.out.println("Interrupting output manager");
@@ -133,9 +136,9 @@ public class FairnessManager {
 				Thread.currentThread().interrupt();
 			}
 		}
-	}
+	}*/
 
-	private class OutputManager extends KillableThread {
+/*	private class OutputManager extends KillableThread {
 
 		int offset = 0;;
 
@@ -219,5 +222,5 @@ public class FairnessManager {
 				}
 			}
 		}
-	}
+	}*/
 }

@@ -181,11 +181,11 @@ public class ProxyListener extends KillableThread {
 			hs.writeFAT();
 		}
 		
-		if(fairnessManager != null) {
+		/*if(fairnessManager != null) {
 			System.out.println("Killing fairness manager");
 			fairnessManager.killTimerAndJoin();
 			System.out.println("Fairness manager killed successfully");
-		}
+		}*/
 
 		interruptConnections();		
 	}
