@@ -279,4 +279,15 @@ public class Globals {
 	public synchronized static void setDimension( Byte dimension ) {
 		Globals.dimension = dimension;
 	}
+	
+	static boolean allowRedirect = true;
+	static public Boolean allowRedirect() {
+		return allowRedirect;
+	}
+	
+	static public void setAllowRedirect(boolean allowRedirect) {
+		Globals.allowRedirect = allowRedirect;
+	}
+	
+	
 }

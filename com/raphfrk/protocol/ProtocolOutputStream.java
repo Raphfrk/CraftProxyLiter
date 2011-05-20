@@ -20,13 +20,9 @@ public class ProtocolOutputStream {
 		int top = packet.mask + 1;
 		int start = packet.start & packet.mask;
 		int end = packet.end & packet.mask;
-		
-		/*int packetId = packet.buffer[0] & 0xFF;
-		
-		if(packetId == 0x46) {
-			System.out.println("Sending rain update packet: " + packet.buffer[1]);
-		}*/
-		
+
+		int packetId = packet.buffer[start] & 0xFF;
+
 		if(start > end) {
 			buffered.write(packet.buffer, start, top - start);
 			buffered.write(packet.buffer, 0, end);
@@ -40,7 +36,7 @@ public class ProtocolOutputStream {
 			buffered.write(packet.buffer, start, end - start);
 
 		}
-		
+
 		return packet;
 
 	}
@@ -52,5 +48,5 @@ public class ProtocolOutputStream {
 	public void close() throws IOException {
 		buffered.close();
 	}
-	
+
 }

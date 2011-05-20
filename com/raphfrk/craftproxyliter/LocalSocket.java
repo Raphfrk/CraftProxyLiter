@@ -115,6 +115,7 @@ public class LocalSocket {
 	public boolean closeSocket(PassthroughConnection ptc) {
 
 		try {
+			pout.flush();
 			pout.close();
 			socket.close();
 		} catch (IOException e) {

@@ -138,6 +138,8 @@ public class DownstreamBridge extends KillableThread {
 						ptc.connectionInfo.setHostname(newHostname);
 						ptc.connectionInfo.redirect = true;
 						if(newHostname != null) {
+							Packet packetBed = new Packet46Bed(2);
+							fm.addPacketToHighQueue(out, packetBed, this);
 							cm.killTimerAndJoin();
 							List<Integer> entityIds = ptc.connectionInfo.clearEntities();
 							for(int id : entityIds) {
@@ -153,8 +155,6 @@ public class DownstreamBridge extends KillableThread {
 								Packet unload = new Packet32PreChunk(x, z, false);
 								fm.addPacketToHighQueue(out, unload, this);
 							}
-							Packet packetBed = new Packet46Bed(2);
-							fm.addPacketToHighQueue(out, packetBed, this);
 							kill();
 							continue;
 						}
@@ -174,14 +174,15 @@ public class DownstreamBridge extends KillableThread {
 
 		}
 
-		try {
-			out.flush();
-		} catch (IOException e) {
-			ptc.printLogMessage("Unable to flush output stream");
-		}
-
 		cm.killTimerAndJoin();
 
+		synchronized(out) {
+			try {
+				out.flush();
+			} catch (IOException e) {
+				ptc.printLogMessage("Unable to flush output stream");
+			}
+		}
 	}
 
 	static void updateEntityId(PassthroughConnection ptc, Set<Integer> activeEntityIds, int packetId, int id) {

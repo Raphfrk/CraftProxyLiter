@@ -59,7 +59,7 @@ public class Packet {
 	}
 
 	public Packet(int size, byte packetId) {
-		int powOf2 = size - 1;
+		int powOf2 = size;
 		powOf2 |= (powOf2>>1);
 		powOf2 |= (powOf2>>2);
 		powOf2 |= (powOf2>>4);

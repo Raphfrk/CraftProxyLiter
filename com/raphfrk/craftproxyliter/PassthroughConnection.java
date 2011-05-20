@@ -6,7 +6,9 @@ import java.text.DateFormat;
 import java.util.Date;
 
 import com.raphfrk.protocol.KillableThread;
+import com.raphfrk.protocol.Packet;
 import com.raphfrk.protocol.Packet10Holding;
+import com.raphfrk.protocol.Packet46Bed;
 import com.raphfrk.protocol.PacketFFKick;
 
 public class PassthroughConnection extends KillableThread {
@@ -123,7 +125,7 @@ public class PassthroughConnection extends KillableThread {
 					kill();
 				}
 			}
-
+			
 			KillableThread StCBridge = new DownstreamBridge(serverLocalSocket.pin, clientLocalSocket.pout, this, fairnessManager);
 			KillableThread CtSBridge = new UpstreamBridge(clientLocalSocket.pin, serverLocalSocket.pout, this, fairnessManager);
 

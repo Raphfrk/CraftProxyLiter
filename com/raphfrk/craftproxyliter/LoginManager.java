@@ -127,7 +127,7 @@ public class LoginManager {
 			return "IO Error reading server login";
 		}
 
-		if(Globals.isAuth()) {
+		if(!reconnect && Globals.isAuth()) {
 			if(!authenticate(ptc.connectionInfo.getUsername(), hash, ptc)) {
 				return "Authentication failed";
 			}
