@@ -46,6 +46,9 @@ public class ProtocolOutputStream {
 	}
 
 	public void close() throws IOException {
+		Packet closeKick = new PacketFFKick("[CraftProxyLiter] Protocol stream closed");
+		sendPacket(closeKick);
+		buffered.flush();
 		buffered.close();
 	}
 
