@@ -111,6 +111,7 @@ public class PassthroughConnection extends KillableThread {
 
 			if(reply != null) {
 				printLogMessage("Login failed: " + reply);
+				ReconnectCache.remove(connectionInfo.getUsername());
 				sendKickMessageAndClose(clientLocalSocket, reply);
 				clientLocalSocket.closeSocket(this);
 				serverLocalSocket.closeSocket(this);
