@@ -74,7 +74,12 @@ public class UpstreamBridge extends KillableThread {
 						hashPacket.writeLong(hashStore[cnt]);
 					}
 					ptc.connectionInfo.saved.addAndGet(-(size*8 + 3));
-					fm.addPacketToHighQueue(out, hashPacket, this);
+					try {
+						fm.addPacketToHighQueue(out, hashPacket, this);
+					} catch (IOException ioe) {
+						kill();
+						continue;
+					}
 
 					if(!blankSent) {
 						//ptc.printLogMessage("Sent blank hash packet");
@@ -171,7 +176,12 @@ public class UpstreamBridge extends KillableThread {
 							}
 						}
 					}
-					fm.addPacketToHighQueue(out, packet, this);
+					try {
+						fm.addPacketToHighQueue(out, packet, this);
+					} catch (IOException ioe) {
+						kill();
+						continue;
+					}
 				} 
 			}
 		}

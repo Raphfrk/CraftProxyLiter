@@ -40,7 +40,7 @@ public class DownstreamBridge extends KillableThread {
 
 		Packet packet = new Packet();
 		Packet packetBackup = packet;
-		
+
 		while(!killed()) {
 
 			try {
@@ -70,7 +70,7 @@ public class DownstreamBridge extends KillableThread {
 				boolean dontSend = false;
 
 				int packetId = packet.getByte(0) & 0xFF;
-				
+
 				if(packetId == 0x32) {
 					int x = packet.getInt(1);
 					int z = packet.getInt(5);
@@ -122,7 +122,7 @@ public class DownstreamBridge extends KillableThread {
 
 					dontSend = true;
 				}
-				
+
 				oldPacketIds.add(packet.buffer[packet.start & packet.mask]);
 				if(this.oldPacketIds.size() > 20) {
 					oldPacketIds.remove();
@@ -141,13 +141,23 @@ public class DownstreamBridge extends KillableThread {
 						}
 						if(newHostname != null) {
 							Packet packetBed = new Packet46Bed(2);
-							fm.addPacketToHighQueue(out, packetBed, this);
+							try {
+								fm.addPacketToHighQueue(out, packetBed, this);
+							} catch (IOException ioe) {
+								kill();
+								continue;
+							}
 							cm.killTimerAndJoin();
 							List<Integer> entityIds = ptc.connectionInfo.clearEntities();
 							for(int id : entityIds) {
 								if(id != clientPlayerId) {
 									Packet destroy = new Packet1DDestroyEntity(id);
-									fm.addPacketToHighQueue(out, destroy, this);
+									try {
+										fm.addPacketToHighQueue(out, destroy, this);
+									} catch (IOException ioe) {
+										kill();
+										continue;
+									}
 								}
 							}
 							List<Long> activeChunks = ptc.connectionInfo.clearChunks();
@@ -155,7 +165,12 @@ public class DownstreamBridge extends KillableThread {
 								int x = ConnectionInfo.getX(chunk);
 								int z = ConnectionInfo.getZ(chunk);
 								Packet unload = new Packet32PreChunk(x, z, false);
-								fm.addPacketToHighQueue(out, unload, this);
+								try {
+									fm.addPacketToHighQueue(out, unload, this);
+								} catch (IOException ioe) {
+									kill();
+									continue;
+								}
 							}
 							kill();
 							continue;
@@ -163,7 +178,12 @@ public class DownstreamBridge extends KillableThread {
 
 					} 
 
-					fm.addPacketToHighQueue(out, packet, this);
+					try {
+						fm.addPacketToHighQueue(out, packet, this);
+					} catch (IOException ioe) {
+						kill();
+						continue;
+					}
 					/*try {
 						out.sendPacket(packet);
 					} catch (IOException e) {

@@ -65,7 +65,12 @@ public class PacketBridge extends KillableThread {
 				}
 			}
 			
-			fm.addPacketToHighQueue(out, packet, this);
+			try {
+				fm.addPacketToHighQueue(out, packet, this);
+			} catch (IOException ioe) {
+				kill();
+				continue;
+			}
 
 		}
 

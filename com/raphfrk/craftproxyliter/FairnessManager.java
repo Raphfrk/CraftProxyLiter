@@ -77,37 +77,21 @@ public class FairnessManager {
 	private ConcurrentLinkedQueue<FairnessEntry> highQueue = new ConcurrentLinkedQueue<FairnessEntry>();
 
 	final private Object outSync = new Object();
-	*/
+	 */
 
-	boolean addPacketToLowQueue(ProtocolOutputStream pout, Packet p, KillableThread t) {
+	boolean addPacketToLowQueue (ProtocolOutputStream pout, Packet p, KillableThread t) throws IOException {
 		boolean r = true;
-		try {
-			synchronized(pout) {
-				pout.sendPacket(p);
-			}
-		} catch (IOException e) {
-			System.out.println("Packet send failed");
+		synchronized(pout) {
+			pout.sendPacket(p);
 		}
-		//synchronized(outSync) {
-		//r = lowQueue.add(new FairnessEntry(pout, p.clone(this), t));
-		//outSync.notifyAll();
-		//}
 		return r;
 	}
 
-	boolean addPacketToHighQueue(ProtocolOutputStream pout, Packet p, KillableThread t) {
+	boolean addPacketToHighQueue(ProtocolOutputStream pout, Packet p, KillableThread t) throws IOException {
 		boolean r = true;
-		try {
-			synchronized(pout) {
-				pout.sendPacket(p);
-			}
-		} catch (IOException e) {
-			System.out.println("Packet send failed");
+		synchronized(pout) {
+			pout.sendPacket(p);
 		}
-		//synchronized(outSync) {
-		//r = highQueue.add(new FairnessEntry(pout, p.clone(this), t));
-		//outSync.notifyAll();
-		//}
 		return r;
 	}
 
@@ -118,7 +102,7 @@ public class FairnessManager {
 		outputManager = new OutputManager();
 		outputManager.start();
 		outputManager.setName("Output Manager");
-		*/
+		 */
 	}
 
 	/*public void killTimerAndJoin() {
@@ -138,7 +122,7 @@ public class FairnessManager {
 		}
 	}*/
 
-/*	private class OutputManager extends KillableThread {
+	/*	private class OutputManager extends KillableThread {
 
 		int offset = 0;;
 

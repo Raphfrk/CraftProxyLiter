@@ -1,6 +1,6 @@
 package com.raphfrk.craftproxyliter;
 
-import java.util.concurrent.ConcurrentHashMap;
+import java.io.IOException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -72,10 +72,20 @@ public class CompressionManager {
 					if(packetId == 0x33) {
 						if(compressing.get()) {
 							Packet compressed = c.compress(p);
-							fm.addPacketToLowQueue(out, compressed, t);
+							try {
+								fm.addPacketToLowQueue(out, compressed, t);
+							} catch (IOException ioe) {
+								kill();
+								continue;
+							}
 							ptc.connectionInfo.uploaded.addAndGet(compressed.end - compressed.start);
 						} else {
-							fm.addPacketToLowQueue(out, p, t);
+							try {
+								fm.addPacketToLowQueue(out, p, t);
+							} catch (IOException ioe) {
+								kill();
+								continue;
+							}
 							ptc.connectionInfo.uploaded.addAndGet(p.end - p.start);
 						}
 					} else if (packetId == 0x51) {
@@ -84,12 +94,22 @@ public class CompressionManager {
 							ptc.printLogMessage("Unable to decompress cached packet");
 							ptc.interrupt();
 						} else {
-							fm.addPacketToLowQueue(out, decompressed, t);
-							ptc.connectionInfo.uploaded.addAndGet(decompressed.end - decompressed.start);
+							try {
+								fm.addPacketToLowQueue(out, decompressed, t);
+								ptc.connectionInfo.uploaded.addAndGet(decompressed.end - decompressed.start);
+							} catch (IOException ioe) {
+								kill();
+								continue;
+							}
 						}
 					} else {
-						fm.addPacketToLowQueue(out, p, t);
-						ptc.connectionInfo.uploaded.addAndGet(p.end - p.start);
+						try {
+							fm.addPacketToLowQueue(out, p, t);
+							ptc.connectionInfo.uploaded.addAndGet(p.end - p.start);
+						} catch (IOException ioe) {
+							kill();
+							continue;
+						}
 					}
 				}
 
