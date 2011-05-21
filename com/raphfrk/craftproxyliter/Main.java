@@ -45,8 +45,8 @@ public class Main {
 			Logging.log( "Usage: " + usageString );
 			Logging.log("    auth                  Switches on authentication (not needed)");
 			Logging.log("    auth_off              Proxy leaves authentication to Minecraft server");
-			Logging.log("    staticlocalhost       Forces use of 127.0.0.1 for localhost");
-			Logging.log("    rotatelocalhost       Uses a different 127.0.x.y for each connection to localhost");
+			Logging.log("    staticlocalhost       Forces use of 127.0.0.1 for localhost (depreciated)");
+			Logging.log("    rotatelocalhost       Uses a different 127.0.x.y for each connection to localhost (depreciated)");
 			Logging.log("    clientversion  <num>  Allows manually setting of client version");
 			Logging.log("    password <password>   Sets password for multi-LAN/global mode");
 			Logging.log("    reconnectfile <file>  Sets the reconnect file");
@@ -54,16 +54,16 @@ public class Main {
 			Logging.log("    log <file>            Redirects output to a log file");
 			Logging.log("    dimension <num>       Sets the dimension (-1 = hell, 0=normal)");
 			Logging.log("    seed <num>            Sets the world seed");
-			Logging.log("    monitor <period ms>   Enables bandwidth use logging");
+			Logging.log("    monitor <period ms>   Enables bandwidth use logging (not implemented)");
 			Logging.log("    compress_info         Outputs info related to the compression/cache system");
 			Logging.log("    local_cache           Puts the proxy in local cache mode");
-			Logging.log("    bridge_connection     Authentication is handled by backend server");
+			Logging.log("    bridge_connection     Authentication is handled by backend server (depreciated)");
 			Logging.log("    cache_limit           Sets the max size of the cache");
 			Logging.log("    quiet:                Reduces logging");
 			Logging.log("    disable_flood:        Disables flood protection");
 			Logging.log("    info:                 Gives more information");
 			Logging.log("    debug:                Gives debug info");
-			Logging.log("    bufferlatency:        Gives more information");
+			Logging.log("    bufferlatency:        Sets buffers max latency");
 			Logging.log("    log_time_off:         Turns off time for logging");
 
 			
