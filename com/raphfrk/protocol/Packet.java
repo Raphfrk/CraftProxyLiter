@@ -1,5 +1,7 @@
 package com.raphfrk.protocol;
 
+import java.util.Arrays;
+
 import com.raphfrk.craftproxyliter.FairnessManager;
 
 public class Packet {
@@ -180,7 +182,6 @@ public class Packet {
 			sb.append((char)getShort(pos));
 			pos+=2;
 		}
-
 		return sb.toString();
 	}
 

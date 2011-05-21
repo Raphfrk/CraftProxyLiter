@@ -4,10 +4,12 @@ import java.io.BufferedReader;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
+import java.security.MessageDigest;
 import java.security.SecureRandom;
 
 import com.raphfrk.protocol.Packet;
@@ -30,18 +32,39 @@ public class LoginManager {
 			return "IO Error reading client handshake";
 		}
 
-		Packet02Handshake CtSHandshake = new Packet02Handshake(packet);
-		info.setUsername(CtSHandshake.getUsername());
+		if(packet.getByte(0) == 0x02) {
+			Packet02Handshake CtSHandshake = new Packet02Handshake(packet);
+			info.setUsername(CtSHandshake.getUsername());
+		} else if (packet.getByte(0) == 0x52){
+			Packet52ProxyLogin proxyLogin = new Packet52ProxyLogin(packet);
+			info.setUsername(proxyLogin.getUsername());
+			info.setHostname(proxyLogin.getHostname());
+			info.forwardConnection = true;
+			ptc.printLogMessage("Proxy to proxy connection received, forwarding to " + ptc.connectionInfo.getHostname());
+		} else {
+			return "Unknown login packet id " + packet.getByte(0);
+		}
 
 		return null;
 
 	}
 
-	public static String bridgeLogin(LocalSocket clientSocket, LocalSocket serverSocket, ConnectionInfo info, PassthroughConnection ptc, boolean reconnect) {
+	public static String bridgeLogin(LocalSocket clientSocket, LocalSocket serverSocket, ConnectionInfo info, PassthroughConnection ptc, boolean reconnect, String fullHostname) {
 
 		Packet packet = new Packet();
 
-		Packet02Handshake CtSHandshake = new Packet02Handshake(info.getUsername());
+		Packet CtSHandshake;
+		
+		String password = Globals.getPassword();
+		
+		if(fullHostname == null || password == null) {
+			if(fullHostname != null) {
+				ptc.printLogMessage("WARNING: attempting to log into another proxy which has authentication enabled but password has not been set");
+			}
+			CtSHandshake = new Packet02Handshake(info.getUsername());
+		} else {
+			CtSHandshake = new Packet52ProxyLogin("", fullHostname, info.getUsername());
+		}
 
 		try {
 			if(serverSocket.pout.sendPacket(CtSHandshake) == null) {
@@ -52,7 +75,7 @@ public class LoginManager {
 		} catch (IOException ioe) {
 			return "IO Error sending client handshake to server";
 		}
-		
+
 		try {
 			packet = serverSocket.pin.getPacket(packet);
 			if(packet == null) {
@@ -63,15 +86,40 @@ public class LoginManager {
 		} catch (IOException ioe) {
 			return "IO Error reading server handshake";
 		}
-		
+
 		Packet02Handshake StCHandshake = new Packet02Handshake(packet);
 
 		String hash = StCHandshake.getUsername();
+
+		if(fullHostname != null) {
+			if(password == null) {
+				ptc.printLogMessage("WARNING: attempting to log into another proxy which has authentication enabled but password has not been set");
+			} else {
+				String confirmCode = sha1Hash(password + hash);
+				System.out.println("Sending code: " + confirmCode);
+				Packet code = new Packet52ProxyLogin(confirmCode, info.getHostname(), info.getUsername());
+				System.out.println("Sent 0x52 packet");
+				try {
+					if(serverSocket.pout.sendPacket(code) == null) {
+						return "Server refused password packet";
+					} 
+				} catch (EOFException eof) {
+					return "Server closed connection before accepting password packet";
+				} catch (IOException ioe) {
+					return "IO Error sending password packet";
+				}
+			}
+		}
+
+		String expectedCode = null;
 		if(Globals.isAuth()) {
 			hash = getHashString();
 			StCHandshake = new Packet02Handshake(hash);
+			expectedCode = sha1Hash(password + hash);
 		}
 		
+		boolean passwordAccepted = false;
+
 		if(!reconnect) {
 			try {
 				if(clientSocket.pout.sendPacket(StCHandshake) == null) {
@@ -82,7 +130,7 @@ public class LoginManager {
 			} catch (IOException ioe) {
 				return "IO Error sending server handshake";
 			}
-
+			
 			try {
 				packet = clientSocket.pin.getPacket(packet);
 				if(packet == null) {
@@ -94,6 +142,29 @@ public class LoginManager {
 			} catch (IOException ioe) {
 				return "IO Error reading client login";
 			}
+			
+			if(packet.getByte(0) == 0x52) {
+				Packet52ProxyLogin proxyLogin = new Packet52ProxyLogin(packet);
+				if(proxyLogin.getCode().equals(expectedCode)) {
+					passwordAccepted = true;
+					try {
+						packet = clientSocket.pin.getPacket(packet);
+						if(packet == null) {
+							return "Client didn't send login packet";
+						}
+						info.clientVersion = packet.getInt(1);
+					} catch (EOFException eof) {
+						return "Client closed connection before sending login";
+					} catch (IOException ioe) {
+						return "IO Error reading client login";
+					}
+				} else {
+					ptc.printLogMessage("Expected: " + expectedCode);
+					ptc.printLogMessage("Received: " + proxyLogin.getCode());
+					return "Attemped password login failed";
+				}
+			}
+			
 		} else {
 			String username = info.getUsername();
 			packet = new Packet(100);
@@ -127,14 +198,14 @@ public class LoginManager {
 			return "IO Error reading server login";
 		}
 
-		if(!reconnect && Globals.isAuth()) {
+		if(!passwordAccepted && !reconnect && Globals.isAuth()) {
 			if(!authenticate(ptc.connectionInfo.getUsername(), hash, ptc)) {
 				return "Authentication failed";
 			}
 		}
 
 		Packet01Login StCLogin = new Packet01Login(packet);	
-		
+
 		info.serverPlayerId = StCLogin.getVersion();
 
 		if(!reconnect) {
@@ -200,6 +271,24 @@ public class LoginManager {
 		}
 
 		return false;
+	}
+
+	static String sha1Hash( String inputString ) {
+
+		try {
+			MessageDigest md = MessageDigest.getInstance("SHA");
+			md.reset();
+
+			md.update(inputString.getBytes("utf-8"));
+
+			BigInteger bigInt = new BigInteger( md.digest() );
+
+			return bigInt.toString( 16 ) ;
+
+		} catch (Exception ioe) {
+			return "hash error";
+		}
+
 	}
 
 }

@@ -6,9 +6,7 @@ import java.text.DateFormat;
 import java.util.Date;
 
 import com.raphfrk.protocol.KillableThread;
-import com.raphfrk.protocol.Packet;
 import com.raphfrk.protocol.Packet10Holding;
-import com.raphfrk.protocol.Packet46Bed;
 import com.raphfrk.protocol.PacketFFKick;
 
 public class PassthroughConnection extends KillableThread {
@@ -62,9 +60,11 @@ public class PassthroughConnection extends KillableThread {
 
 		String hostname = (cached.length() > 0) ? cached : defaultHostname;
 
-		connectionInfo.setHostname(hostname);
+		if(connectionInfo.getHostname() == null) {
+			connectionInfo.setHostname(hostname);
+		}
 		connectionInfo.redirect = true;
-		
+
 		boolean firstConnection = true;
 
 		while(connectionInfo.redirect) {
@@ -75,6 +75,9 @@ public class PassthroughConnection extends KillableThread {
 
 			String nextHostname = RedirectManager.getNextHostname(listenHostname, connectionInfo.getHostname());
 			Integer nextPortnum = RedirectManager.getNextPort(listenHostname, connectionInfo.getHostname());
+
+			Boolean isNextProxy = RedirectManager.isNextProxy(listenHostname, connectionInfo.getHostname());
+			String fullHostname = (isNextProxy != null && isNextProxy)?connectionInfo.getHostname():null;
 
 			// Connect to server
 
@@ -102,8 +105,8 @@ public class PassthroughConnection extends KillableThread {
 
 			// Complete login process
 
-			reply = LoginManager.bridgeLogin(clientLocalSocket, serverLocalSocket, connectionInfo, this, !firstConnection);
-			
+			reply = LoginManager.bridgeLogin(clientLocalSocket, serverLocalSocket, connectionInfo, this, !firstConnection, fullHostname);
+
 			firstConnection = false;
 
 			if(reply != null) {
@@ -115,7 +118,7 @@ public class PassthroughConnection extends KillableThread {
 			} else {
 				printLogMessage("Server login successful");
 			}
-			
+
 			if(connectionInfo.holding != 0) {
 				Packet10Holding holdingPacket = new Packet10Holding(connectionInfo.holding);
 				try {
@@ -125,7 +128,7 @@ public class PassthroughConnection extends KillableThread {
 					kill();
 				}
 			}
-			
+
 			KillableThread StCBridge = new DownstreamBridge(serverLocalSocket.pin, clientLocalSocket.pout, this, fairnessManager);
 			KillableThread CtSBridge = new UpstreamBridge(clientLocalSocket.pin, serverLocalSocket.pout, this, fairnessManager);
 
@@ -153,8 +156,8 @@ public class PassthroughConnection extends KillableThread {
 					StCBridge.interrupt();
 				}
 			}
-			
-			
+
+
 
 			serverLocalSocket.closeSocket(this);
 			printLogMessage("Closed connection to server");

@@ -131,12 +131,14 @@ public class DownstreamBridge extends KillableThread {
 				if(!dontSend) {
 					ptc.connectionInfo.uploaded.addAndGet(packet.end - packet.start);
 
-					if(packetId == 0xFF) {
+					if(!ptc.connectionInfo.forwardConnection && packetId == 0xFF) {
 						String message = packet.getString16(1);
 						String newHostname = redirectDetected(message, ptc);
 						ptc.printLogMessage("Redirect detected: " + newHostname);
 						ptc.connectionInfo.setHostname(newHostname);
-						ptc.connectionInfo.redirect = true;
+						if(newHostname != null) {
+							ptc.connectionInfo.redirect = true;
+						}
 						if(newHostname != null) {
 							Packet packetBed = new Packet46Bed(2);
 							fm.addPacketToHighQueue(out, packetBed, this);
@@ -220,8 +222,9 @@ public class DownstreamBridge extends KillableThread {
 			}
 		}
 
-		if(reason.startsWith("[Serverport] : ") && reason.indexOf(",")>=0) {
-			return reason.substring(15).trim();
+		int commaPos = reason.indexOf(",");
+		if(commaPos>=0) {
+			return reason.substring(reason.indexOf(":") + 1).trim();
 		}
 
 		if( portNum != -1 ) {

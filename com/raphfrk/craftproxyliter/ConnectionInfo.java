@@ -32,6 +32,8 @@ public class ConnectionInfo {
 	
 	public int clientVersion = 0;
 	
+	public boolean forwardConnection = false;
+	
 	private String username;
 	
 	public void setUsername(String username) {
@@ -62,7 +64,7 @@ public class ConnectionInfo {
 		this.port = port;
 	}
 	
-	private String hostname;
+	private String hostname = null;
 	
 	public void setHostname(String hostname) {
 		this.hostname = hostname;
