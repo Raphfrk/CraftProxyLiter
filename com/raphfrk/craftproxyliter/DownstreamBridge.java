@@ -84,14 +84,14 @@ public class DownstreamBridge extends KillableThread {
 							ptc.printLogMessage("Chunk deallocate packet sent for unallocated chunk " + x + ", " + z);
 						}
 					}
-				} else if(packetId == 0x32 || packetId == 0x51) {
-					int x = packet.getInt(1);
-					int z = packet.getInt(7);
+				} else if(packetId == 0x33 || packetId == 0x51) {
+					int x = packet.getInt(1) >> 4;
+					int z = packet.getInt(7) >> 4;
 					if(!ptc.connectionInfo.containsChunk(x, z)) {
 						ptc.printLogMessage("Chunk update packet sent for unallocated chunk " + x + ", " + z + " adding fake init packet");
+						Packet fakeInit = new Packet32PreChunk(x, z, true);
+						cm.addToQueue(fakeInit);
 					}
-					Packet fakeInit = new Packet32PreChunk(x, z, true);
-					cm.addToQueue(fakeInit);
 				}
 
 				// Map entity Ids

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.text.DateFormat;
 import java.util.Date;
+import java.util.HashMap;
 
 import com.raphfrk.protocol.KillableThread;
 import com.raphfrk.protocol.Packet10Holding;
