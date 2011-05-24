@@ -50,7 +50,8 @@ public class Main {
 			Logging.log("    clientversion  <num>  Allows manually setting of client version");
 			Logging.log("    password <password>   Sets password for multi-LAN/global mode");
 			Logging.log("    reconnectfile <file>  Sets the reconnect file");
-			Logging.log("    banned <file>         Sets the banned list file");
+			Logging.log("    banned <file>         Sets the banned list file (one player per line)");
+			Logging.log("    whitelist <file>      Sets the white list file (one player per line)");
 			Logging.log("    log <file>            Redirects output to a log file");
 			Logging.log("    dimension <num>       Sets the dimension (-1 = hell, 0=normal)");
 			Logging.log("    seed <num>            Sets the world seed");
@@ -66,9 +67,6 @@ public class Main {
 			Logging.log("    bufferlatency:        Sets buffers max latency");
 			Logging.log("    log_time_off:         Turns off time for logging");
 
-			
-					
-					
 			if(consoleInput) {
 				System.exit(0);
 			}
@@ -94,7 +92,8 @@ public class Main {
 					else if( args[pos].equals("disable_flood")) Globals.setFlood(false);
 					else if( args[pos].equals("cache_limit"))   { Globals.setCacheLimit(Integer.parseInt(args[pos+1])); pos++;}
 					else if( args[pos].equals("reconnectfile")){ ReconnectCache.init(args[pos+1]); pos++;}
-					else if( args[pos].equals("banned"))       { BanList.init(args[pos+1]); pos++;}
+					else if( args[pos].equals("banned"))       { BanList.init(args[pos+1], false); pos++;}
+					else if( args[pos].equals("whitelist"))       { BanList.init(args[pos+1], true); pos++;}
 					else if( args[pos].equals("local_cache"))  { Globals.setlocalCache(true); }
 					else if( args[pos].equals("compress_info")){ Globals.setCompressInfo(true);}
 					else if( args[pos].equals("dimension"))       { Globals.setDimension(Byte.parseByte(args[pos+1])); pos++;}

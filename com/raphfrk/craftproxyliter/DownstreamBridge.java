@@ -6,6 +6,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import org.bukkit.event.player.PlayerPreLoginEvent;
+
 import com.raphfrk.protocol.EntityMap;
 import com.raphfrk.protocol.KillableThread;
 import com.raphfrk.protocol.Packet;
@@ -64,7 +66,7 @@ public class DownstreamBridge extends KillableThread {
 				ptc.printLogMessage("Packets: " + oldPacketIds);
 				continue;
 			}
-
+			
 			if(packet.start < packet.end) {
 
 				boolean dontSend = false;

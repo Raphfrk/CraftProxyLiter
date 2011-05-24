@@ -15,6 +15,8 @@ public class ProtocolOutputStream {
 		//buffered = out;
 	}
 
+	int lastPacketId = 0;
+
 	public Packet sendPacket(Packet packet) throws IOException {
 
 		int top = packet.mask + 1;
@@ -22,6 +24,7 @@ public class ProtocolOutputStream {
 		int end = packet.end & packet.mask;
 
 		int packetId = packet.buffer[start] & 0xFF;
+		lastPacketId = packetId;
 
 		if(start > end) {
 			buffered.write(packet.buffer, start, top - start);
@@ -46,8 +49,10 @@ public class ProtocolOutputStream {
 	}
 
 	public void close() throws IOException {
-		Packet closeKick = new PacketFFKick("[CraftProxyLiter] Protocol stream closed");
-		sendPacket(closeKick);
+		if(lastPacketId != 0xFF) {
+			Packet closeKick = new PacketFFKick("[CraftProxyLiter] Protocol stream closed");
+			sendPacket(closeKick);
+		}
 		buffered.flush();
 		buffered.close();
 	}
