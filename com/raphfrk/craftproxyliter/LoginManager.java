@@ -61,8 +61,10 @@ public class LoginManager {
 			if(fullHostname != null) {
 				ptc.printLogMessage("WARNING: attempting to log into another proxy which has authentication enabled but password has not been set");
 			}
+			ptc.printLogMessage("Connecting using proxy to server connection format");
 			CtSHandshake = new Packet02Handshake(info.getUsername());
 		} else {
+			ptc.printLogMessage("Connecting using proxy to proxy connection format");
 			CtSHandshake = new Packet52ProxyLogin("", fullHostname, info.getUsername());
 		}
 
