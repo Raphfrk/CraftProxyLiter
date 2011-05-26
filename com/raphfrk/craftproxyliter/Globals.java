@@ -210,7 +210,7 @@ public class Globals {
 		fakeVersion = newFakeVersion;
 	}
 	
-	static private int clientVersion = 11;
+	static private int clientVersion = 13;
 	
 	public synchronized static int getClientVersion() {
 		return clientVersion;

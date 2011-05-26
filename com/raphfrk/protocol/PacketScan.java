@@ -34,20 +34,6 @@ public class PacketScan {
 		
 		int packetId = buffer[position & mask] & 0xff;
 
-		/*if(packetId == 0x50 || packetId == 0x51) {
-			System.err.println("Packet 0x" + Integer.toHexString(packetId) + " received");
-			System.out.println("Packet 0x" + Integer.toHexString(packetId) + " received");
-		}*/
-		
-		/*System.out.println(packet + " Packet Id " + Integer.toHexString(packetId));
-		
-		StringBuilder sb = new StringBuilder(packet + " Data to process: ");
-		for(int cnt=start;cnt<start+dataLength;cnt++) {
-			sb.append(Integer.toHexString((buffer[cnt&mask]&0xFF)) + " " );
-		}
-		System.out.println(sb.toString());
-		*/
-
 		ProtocolUnitArray.Op[] ops     = ProtocolUnitArray.ops[packetId];
 		int[]                  params  = ProtocolUnitArray.params[packetId];
 
@@ -66,6 +52,22 @@ public class PacketScan {
 			switch(ops[cnt]) {
 			case JUMP_FIXED: {
 				position = (position + params[cnt]);
+				break;
+			}
+			case BYTE_SIZED: {
+				byte size = getByte(buffer, position, mask);
+				position = (position + 1);
+				if(size > maxPacketSize) {
+					if(position - start <= dataLength) {
+						System.err.println("Size to large in byte sized byte array");
+						System.out.println("Size to large in byte sized byte array");
+					}
+					return null;
+				}
+				position = (position + size);
+				if(size < 0) {
+					return null;
+				}
 				break;
 			}
 			case SHORT_SIZED: {
@@ -197,6 +199,13 @@ public class PacketScan {
 					}
 				} while (b != 127 && position - start <= dataLength);
 				break;
+			}
+			case OPTIONAL_MOTION: {
+				int optional = getInt(buffer, position, mask);
+				position = (position + 4);
+				if(optional > 0) {
+					position = position + 6;
+				}
 			}
 			case ITEM: {
 				short type = getShort(buffer, position, mask);

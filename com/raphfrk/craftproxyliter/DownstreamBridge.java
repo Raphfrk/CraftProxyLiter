@@ -72,11 +72,14 @@ public class DownstreamBridge extends KillableThread {
 				boolean dontSend = false;
 
 				int packetId = packet.getByte(0) & 0xFF;
-
+				
+				System.out.println("Packet id : " + Integer.toHexString(packetId));
+				
 				if(packetId == 0x32) {
 					int x = packet.getInt(1);
 					int z = packet.getInt(5);
 					boolean mode = packet.getByte(9) != 0;
+
 					if(mode) {
 						if(!ptc.connectionInfo.addChunk(x, z)) {
 							ptc.printLogMessage("Chunk initialise packet sent for already initialised chunk " + x + ", " + z);

@@ -5,12 +5,14 @@ public class ProtocolUnitArray {
 
 	static public enum Op {
 		JUMP_FIXED,
+		BYTE_SIZED,
 		SHORT_SIZED,
 		SHORT_SIZED_DOUBLED,
 		SHORT_SIZED_QUAD,
 		INT_SIZED,
 		INT_SIZED_TRIPLE,
 		META_DATA,
+		OPTIONAL_MOTION,
 		ITEM,
 		ITEM_ARRAY
 	}
@@ -20,10 +22,13 @@ public class ProtocolUnitArray {
 
 	public static OpPair string8          = new OpPair(Op.SHORT_SIZED, 0);
 	public static OpPair string16         = new OpPair(Op.SHORT_SIZED_DOUBLED, 0);
+	public static OpPair byteSized        = new OpPair(Op.BYTE_SIZED, 0);
 	public static OpPair shortSizedQuad   = new OpPair(Op.SHORT_SIZED_QUAD, 0);
 	public static OpPair metaData         = new OpPair(Op.META_DATA, 0);
 	public static OpPair intSized         = new OpPair(Op.INT_SIZED, 0);
 	public static OpPair intSizedTriple   = new OpPair(Op.INT_SIZED_TRIPLE, 0);
+	
+	public static OpPair optionalMotion   = new OpPair(Op.OPTIONAL_MOTION, 0);
 	
 	public static OpPair item             = new OpPair(Op.ITEM, 0);
 	public static OpPair itemArray        = new OpPair(Op.ITEM_ARRAY, 0);
@@ -42,7 +47,7 @@ public class ProtocolUnitArray {
 		opPairs[0x06] = new OpPair[] {jump(13)};
 		opPairs[0x07] = new OpPair[] {jump(10)};
 		opPairs[0x08] = new OpPair[] {jump(3)};
-		opPairs[0x09] = new OpPair[] {jump(1)};
+		opPairs[0x09] = new OpPair[] {jump(2)};
 		opPairs[0x0A] = new OpPair[] {jump(2)};
 		opPairs[0x0B] = new OpPair[] {jump(34)};
 		opPairs[0x0C] = new OpPair[] {jump(10)};
@@ -56,7 +61,7 @@ public class ProtocolUnitArray {
 		opPairs[0x14] = new OpPair[] {jump(5), string16, jump(16)};
 		opPairs[0x15] = new OpPair[] {jump(25)};
 		opPairs[0x16] = new OpPair[] {jump(9)};
-		opPairs[0x17] = new OpPair[] {jump(18)};
+		opPairs[0x17] = new OpPair[] {jump(18), optionalMotion};
 		opPairs[0x18] = new OpPair[] {jump(20), metaData};
 		opPairs[0x19] = new OpPair[] {jump(5), string16, jump(16)};
 		opPairs[0x1B] = new OpPair[] {jump(19)};
@@ -76,6 +81,7 @@ public class ProtocolUnitArray {
 		opPairs[0x35] = new OpPair[] {jump(12)};
 		opPairs[0x36] = new OpPair[] {jump(13)};
 		opPairs[0x3C] = new OpPair[] {jump(29), intSizedTriple};
+		opPairs[0x3D] = new OpPair[] {jump(18)};
 		opPairs[0x46] = new OpPair[] {jump(2)};
 		opPairs[0x47] = new OpPair[] {jump(18)};	
 		opPairs[0x64] = new OpPair[] {jump(3), string8, jump(1)};
@@ -86,6 +92,7 @@ public class ProtocolUnitArray {
 		opPairs[0x69] = new OpPair[] {jump(6)};	
 		opPairs[0x6A] = new OpPair[] {jump(5)};	
 		opPairs[0x82] = new OpPair[] {jump(11), string16, string16, string16, string16};	
+		opPairs[0x83] = new OpPair[] {jump(5), byteSized};
 		opPairs[0xC8] = new OpPair[] {jump(6)};	
 		opPairs[0xFF] = new OpPair[] {jump(1), string16};	
 		
