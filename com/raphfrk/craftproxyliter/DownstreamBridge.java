@@ -73,8 +73,6 @@ public class DownstreamBridge extends KillableThread {
 
 				int packetId = packet.getByte(0) & 0xFF;
 				
-				System.out.println("Packet id : " + Integer.toHexString(packetId));
-				
 				if(packetId == 0x32) {
 					int x = packet.getInt(1);
 					int z = packet.getInt(5);

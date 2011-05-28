@@ -41,6 +41,16 @@ public class PacketScan {
 			if(dataLength > 0) {
 				System.out.println(packet + " Unknown packet Id " + Integer.toHexString(packetId));
 				System.err.println(packet + " Unknown packet Id " + Integer.toHexString(packetId));
+				StringBuilder sb = new StringBuilder();
+				for(int cnt = -40; cnt<40 && cnt < dataLength;cnt++) {
+					String value = Integer.toHexString(buffer[(start + cnt)&mask]&0xFF);
+					if(cnt != 0) {
+						sb.append(value + " ");
+					} else {
+						sb.append("*" + value + "* ");
+					}
+				}
+				System.err.println(packet + sb.toString());
 				throw new IllegalStateException("Unknown packet id + " + Integer.toHexString(packetId));
 			}
 			return null;
@@ -206,6 +216,7 @@ public class PacketScan {
 				if(optional > 0) {
 					position = position + 6;
 				}
+				break;
 			}
 			case ITEM: {
 				short type = getShort(buffer, position, mask);
