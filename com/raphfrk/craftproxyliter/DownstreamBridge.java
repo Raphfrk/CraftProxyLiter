@@ -66,13 +66,13 @@ public class DownstreamBridge extends KillableThread {
 				ptc.printLogMessage("Packets: " + oldPacketIds);
 				continue;
 			}
-			
+
 			if(packet.start < packet.end) {
 
 				boolean dontSend = false;
 
 				int packetId = packet.getByte(0) & 0xFF;
-				
+
 				if(packetId == 0x32) {
 					int x = packet.getInt(1);
 					int z = packet.getInt(5);
@@ -88,8 +88,8 @@ public class DownstreamBridge extends KillableThread {
 						}
 					}
 				} else if(packetId == 0x33 || packetId == 0x51) {
-					int x = packet.getInt(1) >> 4;
-					int z = packet.getInt(7) >> 4;
+					int x = (packet.getInt(1) >> 4);
+					int z = (packet.getInt(7) >> 4);
 					if(!ptc.connectionInfo.containsChunk(x, z)) {
 						ptc.printLogMessage("Chunk update packet sent for unallocated chunk " + x + ", " + z + " adding fake init packet");
 						Packet fakeInit = new Packet32PreChunk(x, z, true);
@@ -230,19 +230,21 @@ public class DownstreamBridge extends KillableThread {
 			ptc.printLogMessage( "Kicked with: " + reason ); 
 		}
 
-		if( reason.indexOf("[Serverport]") == 0 ) {
-			String[] split = reason.split( ":" );
-			if( split.length == 3 ) {
-				hostName = split[1].trim();
-				try { 
-					portNum = Integer.parseInt( split[2].trim() );
-				} catch (Exception e) { portNum = -1; };
-			} else  if( split.length == 2 ) {
-				hostName = split[1].trim();
-				try {
-					portNum = 25565;
-				} catch (Exception e) { portNum = -1; };
-			}
+		if( reason.indexOf("[Serverport]") != 0) {
+			return null;
+		}
+
+		String[] split = reason.split( ":" );
+		if( split.length == 3 ) {
+			hostName = split[1].trim();
+			try { 
+				portNum = Integer.parseInt( split[2].trim() );
+			} catch (Exception e) { portNum = -1; };
+		} else  if( split.length == 2 ) {
+			hostName = split[1].trim();
+			try {
+				portNum = 25565;
+			} catch (Exception e) { portNum = -1; };
 		}
 
 		int commaPos = reason.indexOf(",");

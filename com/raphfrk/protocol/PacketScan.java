@@ -65,7 +65,7 @@ public class PacketScan {
 				break;
 			}
 			case BYTE_SIZED: {
-				byte size = getByte(buffer, position, mask);
+				int size = getByte(buffer, position, mask) & 0xFF;
 				position = (position + 1);
 				if(size > maxPacketSize) {
 					if(position - start <= dataLength) {
