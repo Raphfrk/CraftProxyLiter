@@ -91,6 +91,7 @@ public class PassthroughConnection extends KillableThread {
 
 			// Connect to server
 
+			printLogMessage("Connecting to : " + nextHostname + " " + nextPortnum);
 			Socket serverSocket = LocalSocket.openSocket(nextHostname, nextPortnum, this);
 
 			if(serverSocket == null) {

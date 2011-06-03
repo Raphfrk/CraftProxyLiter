@@ -13,13 +13,13 @@ public class RedirectManager {
 			try {
 				return Integer.parseInt(fullHostname);
 			} catch (NumberFormatException nfe) {
-				return null;
+				return 25565;
 			}
 		} else {
 			try {
 				return Integer.parseInt(fullHostname.substring(lastMarker+1));
 			} catch (NumberFormatException nfe) {
-				return null;
+				return 25565;
 			}
 		}
 		
@@ -90,7 +90,12 @@ public class RedirectManager {
 		String[] split2 = split[0].split(":");
 		
 		if(split2.length<=1) {
-			return "localhost";
+			try {
+				Integer.parseInt(split2[0]);
+				return "localhost";
+			} catch (NumberFormatException nfe) {
+				return split2[0];
+			}
 		} else if(split2.length == 2) {
 			return split2[0];
 		} else {
@@ -112,7 +117,11 @@ public class RedirectManager {
 		String portnum;
 		
 		if(split2.length<=1) {
-			portnum = split2[0];
+			try {
+				return Integer.parseInt(split2[0]);
+			} catch (NumberFormatException nfe) {
+				return 25565;
+			}
 		} else if(split2.length == 2) {
 			portnum = split2[1];
 		} else {
