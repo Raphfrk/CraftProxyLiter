@@ -54,7 +54,7 @@ public class PassthroughConnection extends KillableThread {
 			clientLocalSocket.closeSocket(this);
 			return;
 		}
-		
+
 		if(BanList.banned(connectionInfo.getUsername())) {
 			String message = BanList.getWhiteList()?
 					"You are not on the proxy server's white list":
@@ -62,6 +62,15 @@ public class PassthroughConnection extends KillableThread {
 			sendKickMessageAndClose(clientLocalSocket, message);
 			clientLocalSocket.closeSocket(this);
 			return;
+		}
+
+		if(!BanList.getWhiteList()) {
+			if(BanList.banned(connectionInfo.getIP())) {
+				String message = "Your IP is on the proxy server's IP ban list";
+				sendKickMessageAndClose(clientLocalSocket, message);
+				clientLocalSocket.closeSocket(this);
+				return;
+			}
 		}
 
 		// Find if there is any entry in the reconnect cache for player
