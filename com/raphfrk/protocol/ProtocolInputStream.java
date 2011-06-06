@@ -65,6 +65,8 @@ public class ProtocolInputStream {
 		boolean interrupted = false;
 
 		long currentTime = 0;
+		
+		int packetId = -1;
 
 		//System.out.println("Starting new packet read " + startTime);
 
@@ -94,6 +96,10 @@ public class ProtocolInputStream {
 					readTime -= System.currentTimeMillis();
 					actual = in.read(buffer, endMod, available);
 					readTime += System.currentTimeMillis();
+					
+					if(actual > 0 && packetId == -1) {
+						packetId = 0xFF & buffer[startMod];
+					}
 
 					readSoFar += actual;
 					if(readSoFar < 100) {
@@ -116,6 +122,7 @@ public class ProtocolInputStream {
 					if(length > buffer.length - 1) {
 						System.err.println("Buffer mis-calculation for length??");
 						System.out.println("Buffer mis-calculation for length??");
+						throw new IOException("Buffer mis-calculation for length??");
 					}
 				}
 			}
