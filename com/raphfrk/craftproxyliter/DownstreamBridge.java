@@ -139,6 +139,12 @@ public class DownstreamBridge extends KillableThread {
 						String newHostname = redirectDetected(message, ptc);
 						ptc.printLogMessage("Redirect detected: " + newHostname);
 						ptc.connectionInfo.setHostname(newHostname);
+
+						//We record the new hostname in cache.
+						if(newHostname != null) {
+							ReconnectCache.store(ptc.connectionInfo.getUsername(),newHostname);
+						}
+
 						if(newHostname != null) {
 							ptc.connectionInfo.redirect = true;
 						}
