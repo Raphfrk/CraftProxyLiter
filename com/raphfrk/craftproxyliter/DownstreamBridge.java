@@ -6,11 +6,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import org.bukkit.event.player.PlayerPreLoginEvent;
-
 import com.raphfrk.protocol.EntityMap;
 import com.raphfrk.protocol.KillableThread;
 import com.raphfrk.protocol.Packet;
+import com.raphfrk.protocol.Packet03Chat;
 import com.raphfrk.protocol.Packet1DDestroyEntity;
 import com.raphfrk.protocol.Packet32PreChunk;
 import com.raphfrk.protocol.Packet46Bed;
@@ -23,7 +22,7 @@ public class DownstreamBridge extends KillableThread {
 	final ProtocolOutputStream out;
 	final PassthroughConnection ptc;
 	final FairnessManager fm;
-
+	
 	DownstreamBridge(ProtocolInputStream in, ProtocolOutputStream out, PassthroughConnection ptc, FairnessManager fm) {
 
 		this.in = in;
@@ -62,9 +61,23 @@ public class DownstreamBridge extends KillableThread {
 				continue;
 			} catch (IllegalStateException ise) {
 				kill();
+				ptc.printLogMessage("Downstream link");
 				ptc.printLogMessage(packetBackup + " Unable to read packet");
 				ptc.printLogMessage("Packets: " + oldPacketIds);
 				continue;
+			}
+			
+			while(!ptc.messageQueue.isEmpty()) {
+				String message = ptc.messageQueue.poll();
+				if(message != null) {
+					Packet03Chat chat = new Packet03Chat(message);
+					try {
+						fm.addPacketToHighQueue(out, chat, this);
+					} catch (IOException e) {
+						kill();
+						continue;
+					}
+				}
 			}
 
 			if(packet.start < packet.end) {
@@ -125,7 +138,7 @@ public class DownstreamBridge extends KillableThread {
 
 					dontSend = true;
 				}
-
+				
 				oldPacketIds.add(packet.buffer[packet.start & packet.mask]);
 				if(this.oldPacketIds.size() > 20) {
 					oldPacketIds.remove();
@@ -187,6 +200,9 @@ public class DownstreamBridge extends KillableThread {
 						kill();
 						continue;
 					}
+					
+					
+					
 					/*try {
 						out.sendPacket(packet);
 					} catch (IOException e) {
@@ -230,7 +246,7 @@ public class DownstreamBridge extends KillableThread {
 			ptc.printLogMessage( "Kicked with: " + reason ); 
 		}
 
-		if( reason.indexOf("[Serverport]") != 0) {
+		if( reason.indexOf("[Serverport]") != 0 && reason.indexOf("[Redirect]") != 0) {
 			return null;
 		}
 

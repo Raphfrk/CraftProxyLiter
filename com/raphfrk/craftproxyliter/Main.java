@@ -49,6 +49,7 @@ public class Main {
 			Logging.log("    rotatelocalhost       Uses a different 127.0.x.y for each connection to localhost (depreciated)");
 			Logging.log("    clientversion  <num>  Allows manually setting of client version");
 			Logging.log("    password <password>   Sets password for multi-LAN/global mode");
+			Logging.log("    command <command-name>Sets the command name for proxy commands /command-name");
 			Logging.log("    reconnectfile <file>  Sets the reconnect file");
 			Logging.log("    banned <file>         Sets the banned list file (one player per line)");
 			Logging.log("    whitelist <file>      Sets the white list file (one player per line)");
@@ -88,6 +89,7 @@ public class Main {
 					else if( args[pos].equals("bridge_connection")) Globals.setBridgingConnection(true);
 					else if( args[pos].equals("clientversion")){ Globals.setClientVersion(Integer.parseInt(args[pos+1])); pos++;}
 					else if( args[pos].equals("password"))     { Globals.setPassword(args[pos+1]); pos++;}
+					else if( args[pos].equals("command"))     { Globals.setCommand(args[pos+1]); pos++;}
 					else if( args[pos].equals("quiet"))          Globals.setQuiet(true);
 					else if( args[pos].equals("disable_flood")) Globals.setFlood(false);
 					else if( args[pos].equals("cache_limit"))   { Globals.setCacheLimit(Integer.parseInt(args[pos+1])); pos++;}

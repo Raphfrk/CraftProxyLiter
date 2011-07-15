@@ -115,6 +115,7 @@ public class UpstreamBridge extends KillableThread {
 				continue;
 			}catch (IllegalStateException ise) {
 				kill();
+				ptc.printLogMessage("Upstream link");
 				ptc.printLogMessage(packetBackup + " Unable to read packet");
 				ptc.printLogMessage("Packets: " + oldPacketIds);
 				continue;
@@ -159,6 +160,24 @@ public class UpstreamBridge extends KillableThread {
 						ptc.connectionInfo.holding = packet.getShort(1);
 					}
 					
+					boolean commandReceived = false;
+					
+					if(Globals.getCommand() != null && packetId == 0x03) {
+						String message = packet.getString16(1);
+						if(message.indexOf("/" + Globals.getCommand() + " ") == 0) {
+							if(message.indexOf("reload") != -1) {
+								ReconnectCache.reload();
+								ptc.messageQueue.add("[CraftProxyLiter] Reconnect cache reloaded");
+								commandReceived = true;
+							} else if(message.indexOf("save") != -1) {
+								ReconnectCache.save();
+								ptc.messageQueue.add("[CraftProxyLiter] Reconnect cache saved");
+								commandReceived = true;
+							}
+						}
+						
+					}
+					
 					// Map entity Ids
 					int clientPlayerId = ptc.connectionInfo.clientPlayerId;
 					int serverPlayerId = ptc.connectionInfo.serverPlayerId;
@@ -177,7 +196,9 @@ public class UpstreamBridge extends KillableThread {
 						}
 					}
 					try {
-						fm.addPacketToHighQueue(out, packet, this);
+						if(!commandReceived) {
+							fm.addPacketToHighQueue(out, packet, this);
+						}
 					} catch (IOException ioe) {
 						kill();
 						continue;

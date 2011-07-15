@@ -2,15 +2,22 @@ package com.raphfrk.craftproxyliter;
 
 public class ReconnectCache {
 
-	static MyPropertiesFile pf = null;
+	private static MyPropertiesFile pf = null;
+	private static String filename = null;
 
-	static void init(String filename) {
+	static synchronized void init(String filename) {
 
 		if( pf == null ) {
+			ReconnectCache.filename = filename;
 			pf = new MyPropertiesFile(filename);
 			pf.load();
 		}
 
+	}
+	
+	static synchronized void reload() {
+		pf = null;
+		init(filename);
 	}
 
 	static synchronized void store(String player, String hostname) {

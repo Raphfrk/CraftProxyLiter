@@ -12,6 +12,16 @@ public class Globals {
 		Globals.password = password;
 	}
 	
+	static private String command = null;
+	
+	public synchronized static String getCommand() {
+		return command;
+	}
+	
+	public synchronized static void setCommand(String command) {
+		Globals.command = command;
+	}
+	
 	static private String localAlias = "";
 	
 	public synchronized static String getLocalAlias() {
@@ -297,6 +307,5 @@ public class Globals {
 	static public void setLogTime(boolean logTime) {
 		Globals.logTime = logTime;
 	}
-	
 	
 }

@@ -5,6 +5,7 @@ import java.net.Socket;
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.raphfrk.protocol.KillableThread;
 import com.raphfrk.protocol.Packet10Holding;
@@ -33,6 +34,7 @@ public class PassthroughConnection extends KillableThread {
 
 	}
 
+	ConcurrentLinkedQueue<String> messageQueue = new ConcurrentLinkedQueue<String>();
 
 	public void run() {
 
@@ -149,6 +151,8 @@ public class PassthroughConnection extends KillableThread {
 					kill();
 				}
 			}
+			
+			ReconnectCache.store(connectionInfo.getUsername(), connectionInfo.getHostname());
 
 			KillableThread StCBridge = new DownstreamBridge(serverLocalSocket.pin, clientLocalSocket.pout, this, fairnessManager);
 			KillableThread CtSBridge = new UpstreamBridge(clientLocalSocket.pin, serverLocalSocket.pout, this, fairnessManager);
