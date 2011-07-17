@@ -92,7 +92,7 @@ public class LoginManager {
 		Packet02Handshake StCHandshake = new Packet02Handshake(packet);
 
 		String hash = StCHandshake.getUsername();
-
+		
 		if(fullHostname != null) {
 			if(password == null) {
 				ptc.printLogMessage("WARNING: attempting to log into another proxy which has authentication enabled but password has not been set");
@@ -209,7 +209,9 @@ public class LoginManager {
 		Packet01Login StCLogin = new Packet01Login(packet);	
 
 		info.serverPlayerId = StCLogin.getVersion();
-
+		info.loginDimension = StCLogin.getDimension();
+		info.loginSeed = StCLogin.getSeed();
+		
 		if(!reconnect) {
 			info.clientPlayerId = StCLogin.getVersion();
 			try {

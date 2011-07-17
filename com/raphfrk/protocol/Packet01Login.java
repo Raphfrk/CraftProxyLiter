@@ -19,7 +19,7 @@ public class Packet01Login extends Packet {
 	}
 	
 	public byte getDimension() {
-		return getByte(6 + getString16Length(6));
+		return getByte(13 + getString16Length(5));
 	}
 
 }

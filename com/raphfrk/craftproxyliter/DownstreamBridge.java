@@ -85,7 +85,7 @@ public class DownstreamBridge extends KillableThread {
 				boolean dontSend = false;
 
 				int packetId = packet.getByte(0) & 0xFF;
-
+				
 				if(packetId == 0x32) {
 					int x = packet.getInt(1);
 					int z = packet.getInt(5);

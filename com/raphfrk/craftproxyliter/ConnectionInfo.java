@@ -34,6 +34,9 @@ public class ConnectionInfo {
 	
 	public boolean forwardConnection = false;
 	
+	public byte loginDimension = 0;
+	public long loginSeed = 0;
+	
 	private String username;
 	
 	public void setUsername(String username) {

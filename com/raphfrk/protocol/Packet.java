@@ -186,7 +186,7 @@ public class Packet {
 	}
 
 	public int getString16Length(int pos) {
-		return getShort(pos);
+		return 2 + getShort(pos);
 	}
 
 	boolean isValid() {
@@ -213,5 +213,20 @@ public class Packet {
 		
 		return true;
 		
+	}
+	
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		boolean first = true;
+		for(int cnt = 0; cnt<end-start;cnt++) {
+			if(!first) {
+				sb.append(", ");
+			} else {
+				first = false;
+			}
+			sb.append(Integer.toHexString(getByte(cnt) & 0xFF));
+		}
+		return sb.toString();
 	}
 }

@@ -4,10 +4,10 @@ import java.io.IOException;
 import java.net.Socket;
 import java.text.DateFormat;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.raphfrk.protocol.KillableThread;
+import com.raphfrk.protocol.Packet09Respawn;
 import com.raphfrk.protocol.Packet10Holding;
 import com.raphfrk.protocol.PacketFFKick;
 
@@ -90,8 +90,6 @@ public class PassthroughConnection extends KillableThread {
 
 		while(connectionInfo.redirect) {
 
-			connectionInfo.redirect = false;
-
 			// Extract connection next connection info from the host name
 
 			String nextHostname = RedirectManager.getNextHostname(listenHostname, connectionInfo.getHostname());
@@ -129,8 +127,6 @@ public class PassthroughConnection extends KillableThread {
 
 			reply = LoginManager.bridgeLogin(clientLocalSocket, serverLocalSocket, connectionInfo, this, !firstConnection, fullHostname);
 
-			firstConnection = false;
-
 			if(reply != null) {
 				printLogMessage("Login failed: " + reply);
 				ReconnectCache.remove(connectionInfo.getUsername());
@@ -141,7 +137,7 @@ public class PassthroughConnection extends KillableThread {
 			} else {
 				printLogMessage("Server login successful");
 			}
-
+			
 			if(connectionInfo.holding != 0) {
 				Packet10Holding holdingPacket = new Packet10Holding(connectionInfo.holding);
 				try {
@@ -151,6 +147,22 @@ public class PassthroughConnection extends KillableThread {
 					kill();
 				}
 			}
+			
+			if(!firstConnection) {
+				byte otherDimension = (byte)((connectionInfo.loginDimension == 0) ? -1 : 0); 
+				Packet09Respawn otherDimensionPacket = new Packet09Respawn(otherDimension);
+				Packet09Respawn dimensionPacket = new Packet09Respawn(connectionInfo.loginDimension);
+				try {
+					clientLocalSocket.pout.sendPacket(otherDimensionPacket);
+					clientLocalSocket.pout.sendPacket(dimensionPacket);
+				} catch (IOException e) {
+					printLogMessage("Unable to send dimension setup packet");
+					kill();
+				}
+			}
+			
+			firstConnection = false;
+			connectionInfo.redirect = false;
 			
 			ReconnectCache.store(connectionInfo.getUsername(), connectionInfo.getHostname());
 
