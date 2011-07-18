@@ -6,6 +6,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
@@ -174,7 +175,11 @@ public class Compressor {
 			current.blockNum = cnt;
 			current.buffer = decompressed;
 			current.wipeBuffer = false;
-			hashResults.set(cnt, pool.submit(current));
+			try {
+				hashResults.set(cnt, pool.submit(current));
+			} catch (RejectedExecutionException ree) {
+				return packet;
+			}
 		}
 
 		for(int cnt=0;cnt<40;cnt++) {
