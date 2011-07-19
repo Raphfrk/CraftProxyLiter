@@ -1,8 +1,11 @@
 package com.raphfrk.craftproxyliter;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
 public class RedirectManager {
 	
-	public static Integer getPort(String fullHostname) {
+	public static Integer getListenPort(String fullHostname) {
 		
 		int pos = fullHostname.lastIndexOf(":");
 		int pos2 = fullHostname.lastIndexOf(",");
@@ -20,6 +23,42 @@ public class RedirectManager {
 				return Integer.parseInt(fullHostname.substring(lastMarker+1));
 			} catch (NumberFormatException nfe) {
 				return 25565;
+			}
+		}
+		
+	}
+	
+	public static InetAddress getListenHostname(String fullHostname) {
+		
+		int pos = fullHostname.lastIndexOf(":");
+		int pos2 = fullHostname.lastIndexOf(",");
+		
+		int lastMarker = Math.max(pos, pos2);
+		
+		if(lastMarker == -1) {
+				return null;
+		} else {
+			pos2++;
+			if(pos == -1) {
+				return null;
+			} else {
+				if(pos2 < pos) {
+					String hostname = fullHostname.substring(pos2, pos);
+					InetAddress address;
+					try {
+						address = InetAddress.getByName(hostname);
+					} catch (UnknownHostException e) {
+						Logging.log("Unknown hostname for listen port: " + hostname);
+						return null;
+					}
+					if(MiscUtils.isThisMyIpAddress(address)) {
+						return address;
+					} else {
+						return null;
+					}
+				} else {
+					return null;
+				}
 			}
 		}
 		

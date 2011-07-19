@@ -4,6 +4,7 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.BindException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
@@ -21,6 +22,7 @@ import com.raphfrk.protocol.ProtocolUnitArray;
 public class ProxyListener extends KillableThread {
 
 	private final int port;
+	private final InetAddress listenAddress;
 	private final String listenHostname;
 	private final String defaultHostname;
 	private final FairnessManager fairnessManager = new FairnessManager();
@@ -28,7 +30,8 @@ public class ProxyListener extends KillableThread {
 	LinkedList<PassthroughConnection> connections = new LinkedList<PassthroughConnection>();
 
 	ProxyListener(String listenHostname, String defaultHostname) {
-		this.port = RedirectManager.getPort(listenHostname);
+		this.port = RedirectManager.getListenPort(listenHostname);
+		this.listenAddress = RedirectManager.getListenHostname(listenHostname);
 		this.listenHostname = listenHostname;
 		this.defaultHostname = defaultHostname;
 		setName("Proxy Listener");
@@ -59,7 +62,7 @@ public class ProxyListener extends KillableThread {
 		
 		ServerSocket listener = null;
 		try {
-			listener = new ServerSocket(port);
+			listener = new ServerSocket(port, 0, listenAddress);
 			listener.setSoTimeout(200);
 		} catch (BindException be) {
 			Logging.log( "ERROR: CraftProxy: Unable to bind to port");
@@ -94,7 +97,11 @@ public class ProxyListener extends KillableThread {
 			return;
 		} 
 
-		Logging.log("Server listening on port: " + port);
+		if(listenAddress != null) {
+			Logging.log("Server listening on: " + listenAddress + ":" + port);
+		} else {
+			Logging.log("Server listening on port: " + port);
+		}
 		if(Main.craftGUI != null) {
 			Main.craftGUI.safeSetStatus("<html>Server Started<br>Connect to localhost:" + port + "</html>");
 		}
@@ -111,9 +118,6 @@ public class ProxyListener extends KillableThread {
 			try {
 				socket = listener.accept();
 			} catch (SocketTimeoutException ste ) {
-				if( socket != null ) {
-					Logging.log("Socket not null after timeout" );
-				}
 				continue;
 			} catch (IOException e) {
 				Logging.log("Error waiting for connection");
