@@ -308,4 +308,14 @@ public class Globals {
 		Globals.logTime = logTime;
 	}
 	
+	static int limit = 0;
+	
+	static public int bandwidthLimit() {
+		return limit;
+	}
+	
+	static public void setBandwidthLimit(int limit) {
+		Globals.limit = limit;
+	}
+	
 }

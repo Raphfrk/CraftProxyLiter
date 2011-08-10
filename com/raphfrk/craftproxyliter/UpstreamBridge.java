@@ -20,14 +20,13 @@ public class UpstreamBridge extends KillableThread {
 	final PassthroughConnection ptc;
 	final FairnessManager fm;
 
-
 	UpstreamBridge(ProtocolInputStream in, ProtocolOutputStream out, PassthroughConnection ptc, FairnessManager fm) {
 
 		this.in = in;
 		this.out = out;
 		this.ptc = ptc;
 		this.fm = fm;
-
+		
 		this.setName("Upstream Bridge");
 	}
 
@@ -75,7 +74,8 @@ public class UpstreamBridge extends KillableThread {
 					}
 					ptc.connectionInfo.saved.addAndGet(-(size*8 + 3));
 					try {
-						fm.addPacketToHighQueue(out, hashPacket, this);
+						//limiter.limit(packet.end - packet.start);
+						out.sendPacket(hashPacket);
 					} catch (IOException ioe) {
 						kill();
 						continue;
@@ -197,7 +197,8 @@ public class UpstreamBridge extends KillableThread {
 					}
 					try {
 						if(!commandReceived) {
-							fm.addPacketToHighQueue(out, packet, this);
+							//limiter.limit(packet.end - packet.start);
+							out.sendPacket(packet);
 						}
 					} catch (IOException ioe) {
 						kill();

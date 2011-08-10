@@ -20,7 +20,7 @@ public class Packet {
 
 		int length = end - start;
 
-		p.buffer = fm.getBuffer(length);
+		p.buffer = new byte[length];
 
 		p.start = 0;
 		p.end = length;

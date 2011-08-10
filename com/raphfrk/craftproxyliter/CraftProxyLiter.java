@@ -49,7 +49,8 @@ public class CraftProxyLiter extends JavaPlugin {
 			    "password",
 			    "reconnectfile",
 			    "banned",
-			    "cache_limit"
+			    "cache_limit",
+			    "bandwidth_limit"
 		};
 		
 		if( !pluginDirectory.exists() ) {

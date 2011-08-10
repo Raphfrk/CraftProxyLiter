@@ -65,6 +65,7 @@ public class LocalSocket {
 		}
 		try {
 			socket.setSoTimeout(200);
+			socket.setReceiveBufferSize(4096);
 		} catch (SocketException e) {
 			ptc.printLogMessage("Unable to set socket timeout");
 			if(socket != null) {
