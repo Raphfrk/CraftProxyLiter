@@ -158,6 +158,7 @@ public class Main {
 			} catch (IOException e) {
 			}
 			
+			ReconnectCache.killThread();
 			ReconnectCache.save();
 			server.interrupt();
 		} else {
