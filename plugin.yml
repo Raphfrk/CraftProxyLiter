@@ -1,0 +1,8 @@
+name: CraftProxyLiter
+main: com.raphfrk.craftproxyliter.CraftProxyLiter
+version: 0.1
+commands:
+  craftproxyliter:
+    description: Used to configure craftproxyliter
+    usage: |
+      Incorrect usage of command /<command>

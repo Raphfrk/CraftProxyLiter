@@ -1,0 +1,11 @@
+Build instructions:
+
+mkdir out
+
+<path>/javac.exe -cp <path to bukkit>/bukkit-0.0.1-SNAPSHOT.jar; com/raphfrk/*/*.java -d out
+
+cd out
+jar cvfm ../CraftProxyLiter.jar ../manifest.txt *
+cd ..
+
+zip -r CraftProxyLiter.jar . -i plugin.yml
