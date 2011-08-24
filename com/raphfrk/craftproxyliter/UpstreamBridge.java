@@ -162,9 +162,9 @@ public class UpstreamBridge extends KillableThread {
 					
 					boolean commandReceived = false;
 					
-					if(Globals.getCommand() != null && packetId == 0x03) {
+					if(packetId == 0x03) {
 						String message = packet.getString16(1);
-						if(message.indexOf("/" + Globals.getCommand() + " ") == 0) {
+						if(Globals.getCommand() != null && message.indexOf("/" + Globals.getCommand() + " ") == 0) {
 							if(message.indexOf("reload") != -1) {
 								ReconnectCache.reload();
 								ptc.messageQueue.add("[CraftProxyLiter] Reconnect cache reloaded");
@@ -175,7 +175,15 @@ public class UpstreamBridge extends KillableThread {
 								commandReceived = true;
 							}
 						}
-						
+
+						if (message.equals("/memdump")) {
+							String adminName = Globals.getAdminName();
+							if (adminName != null && ptc.connectionInfo.getUsername().equals(adminName)) {
+								(new HeapDump()).start();
+							} else {
+								ptc.printLogMessage(ptc.connectionInfo.getUsername() + " attempted to dump memory");
+							}
+						}
 					}
 					
 					// Map entity Ids

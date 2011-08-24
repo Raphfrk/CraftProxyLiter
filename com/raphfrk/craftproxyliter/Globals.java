@@ -12,6 +12,16 @@ public class Globals {
 		Globals.password = password;
 	}
 	
+	static private String adminName = null;
+	
+	public synchronized static String getAdminName() {
+		return adminName;
+	}
+	
+	public synchronized static void setAdminName(String adminName) {
+		Globals.adminName = adminName;
+	}
+	
 	static private String command = null;
 	
 	public synchronized static String getCommand() {
