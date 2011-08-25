@@ -74,8 +74,7 @@ public class UpstreamBridge extends KillableThread {
 					}
 					ptc.connectionInfo.saved.addAndGet(-(size*8 + 3));
 					try {
-						//limiter.limit(packet.end - packet.start);
-						out.sendPacket(hashPacket);
+						fm.addPacketToHighQueue(out, hashPacket, this);
 					} catch (IOException ioe) {
 						kill();
 						continue;
@@ -205,8 +204,7 @@ public class UpstreamBridge extends KillableThread {
 					}
 					try {
 						if(!commandReceived) {
-							//limiter.limit(packet.end - packet.start);
-							out.sendPacket(packet);
+							fm.addPacketToHighQueue(out, packet, this);
 						}
 					} catch (IOException ioe) {
 						kill();

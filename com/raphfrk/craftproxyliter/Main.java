@@ -68,7 +68,6 @@ public class Main {
 			Logging.log("    debug:                Gives debug info");
 			Logging.log("    bufferlatency:        Sets buffers max latency");
 			Logging.log("    log_time_off:         Turns off time for logging");
-			Logging.log("    bandwidth_limit:      Sets the max bandwidth limit in kbps");
 
 			if(consoleInput) {
 				System.exit(0);
@@ -108,7 +107,6 @@ public class Main {
 					else if( args[pos].equals("seed"))       { Globals.setSeed(Long.parseLong(args[pos+1])); pos++;}
 					else if( args[pos].equals("blockredirects"))       { Globals.setAllowRedirect(false);}
 					else if( args[pos].equals("log_time_off"))       { Globals.setLogTime(false);}
-					else if( args[pos].equals("bandwidth_limit"))       { Globals.setBandwidthLimit(Integer.parseInt(args[pos+1])); pos++;}
 					else if( args[pos].equals("log"))              { Logging.setFilename(args[pos+1]) ; pos++;}
 					else                                        {System.out.println("Unknown field: " + args[pos]); System.exit(0);}
 

@@ -50,7 +50,6 @@ public class CraftProxyLiter extends JavaPlugin {
 			    "reconnectfile",
 			    "banned",
 			    "cache_limit",
-			    "bandwidth_limit",
 			    "whitelist"
 		};
 		

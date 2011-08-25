@@ -17,16 +17,12 @@ public class PacketBridge extends KillableThread {
 	final PassthroughConnection ptc;
 	final FairnessManager fm;
 	
-	final Limiter limiter;
-
 	PacketBridge(ProtocolInputStream in, ProtocolOutputStream out, PassthroughConnection ptc, FairnessManager fm) {
 
 		this.in = in;
 		this.out = out;
 		this.ptc = ptc;
 		this.fm = fm;
-		
-		this.limiter = new Limiter(Globals.bandwidthLimit());
 
 	}
 
@@ -70,7 +66,7 @@ public class PacketBridge extends KillableThread {
 			}
 			
 			try {
-				out.sendPacket(packet);
+				fm.addPacketToHighQueue(out, packet, this);
 			} catch (IOException ioe) {
 				kill();
 				continue;

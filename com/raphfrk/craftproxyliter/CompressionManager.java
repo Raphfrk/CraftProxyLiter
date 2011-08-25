@@ -16,16 +16,14 @@ public class CompressionManager {
 	private final ProtocolOutputStream out;
 	private final PassthroughConnection ptc;
 	private final KillableThread t;
-	private final Limiter limiter;
 
 	private final Object compSync = new Object();
 
-	CompressionManager(KillableThread t, PassthroughConnection ptc, FairnessManager fm, ProtocolOutputStream out, Limiter limiter) {
+	CompressionManager(KillableThread t, PassthroughConnection ptc, FairnessManager fm, ProtocolOutputStream out) {
 		this.ptc = ptc;
 		this.fm = fm;
 		this.out = out;
 		this.t = t;
-		this.limiter = limiter;
 		ct = new CompressionThread();
 		ct.setName("CompressionThread");
 		ct.start();
@@ -41,9 +39,8 @@ public class CompressionManager {
 			try {
 				ct.join();
 			} catch (InterruptedException e) {
-				System.out.println("Compression Manager Interrupted when waiting for timer to close");
+				System.out.println("Fairness Manager Interrupted when waiting for timer to close");
 				Thread.currentThread().interrupt();
-				ct.interrupt();
 			}
 		}
 	}
@@ -70,16 +67,13 @@ public class CompressionManager {
 
 				Packet p = queue.poll();
 
-				if(p != null && !killed()) {
+				if(p != null) {
 					int packetId = p.getByte(0) & 0xFF;
 					if(packetId == 0x33) {
 						if(compressing.get()) {
 							Packet compressed = c.compress(p);
 							try {
-								limiter.pass(compressed.end - compressed.start);
-								synchronized(out) {
-									out.sendPacket(compressed);
-								}
+								fm.addPacketToLowQueue(out, compressed, t);
 							} catch (IOException ioe) {
 								kill();
 								continue;
@@ -87,10 +81,7 @@ public class CompressionManager {
 							ptc.connectionInfo.uploaded.addAndGet(compressed.end - compressed.start);
 						} else {
 							try {
-								limiter.pass(p.end - p.start);
-								synchronized(out) {
-									out.sendPacket(p);
-								}
+								fm.addPacketToLowQueue(out, p, t);
 							} catch (IOException ioe) {
 								kill();
 								continue;
@@ -104,10 +95,7 @@ public class CompressionManager {
 							ptc.interrupt();
 						} else {
 							try {
-								limiter.pass(decompressed.end - decompressed.start);
-								synchronized(out) {
-									out.sendPacket(decompressed);
-								}
+								fm.addPacketToLowQueue(out, decompressed, t);
 								ptc.connectionInfo.uploaded.addAndGet(decompressed.end - decompressed.start);
 							} catch (IOException ioe) {
 								kill();
@@ -116,10 +104,7 @@ public class CompressionManager {
 						}
 					} else {
 						try {
-							limiter.pass(p.end - p.start);
-							synchronized(out) {
-								out.sendPacket(p);
-							}
+							fm.addPacketToLowQueue(out, p, t);
 							ptc.connectionInfo.uploaded.addAndGet(p.end - p.start);
 						} catch (IOException ioe) {
 							kill();

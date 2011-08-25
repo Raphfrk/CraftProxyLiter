@@ -22,7 +22,6 @@ public class DownstreamBridge extends KillableThread {
 	final ProtocolOutputStream out;
 	final PassthroughConnection ptc;
 	final FairnessManager fm;
-	final Limiter limiter;
 	
 	DownstreamBridge(ProtocolInputStream in, ProtocolOutputStream out, PassthroughConnection ptc, FairnessManager fm) {
 
@@ -31,8 +30,6 @@ public class DownstreamBridge extends KillableThread {
 		this.ptc = ptc;
 		this.fm = fm;
 		this.setName("Downstream Bridge");
-		
-		this.limiter = new Limiter(Globals.bandwidthLimit());
 
 	}
 
@@ -40,7 +37,7 @@ public class DownstreamBridge extends KillableThread {
 
 	public void run() {
 
-		CompressionManager cm = new CompressionManager(this, ptc, fm, out, limiter);
+		CompressionManager cm = new CompressionManager(this, ptc, fm, out);
 
 		Packet packet = new Packet();
 		Packet packetBackup = packet;
@@ -48,7 +45,6 @@ public class DownstreamBridge extends KillableThread {
 		while(!killed()) {
 
 			try {
-				limiter.limit(0);
 				packet = in.getPacket(packet);
 				if(packet == null) {
 					ptc.printLogMessage("Timeout");
@@ -76,10 +72,7 @@ public class DownstreamBridge extends KillableThread {
 				if(message != null) {
 					Packet03Chat chat = new Packet03Chat(message);
 					try {
-						limiter.pass(packet.end - packet.start);
-						synchronized(out) {
-							out.sendPacket(chat);
-						}
+						fm.addPacketToHighQueue(out, chat, this);
 					} catch (IOException e) {
 						kill();
 						continue;
@@ -152,7 +145,6 @@ public class DownstreamBridge extends KillableThread {
 				}
 
 				if(!dontSend) {
-					
 					ptc.connectionInfo.uploaded.addAndGet(packet.end - packet.start);
 
 					if(!ptc.connectionInfo.forwardConnection && packetId == 0xFF) {
@@ -166,10 +158,7 @@ public class DownstreamBridge extends KillableThread {
 						if(newHostname != null) {
 							Packet packetBed = new Packet46Bed(2);
 							try {
-								limiter.pass(packet.end - packet.start);
-								synchronized(out) {
-									out.sendPacket(packetBed);
-								}
+								fm.addPacketToHighQueue(out, packetBed, this);
 							} catch (IOException ioe) {
 								kill();
 								continue;
@@ -180,10 +169,7 @@ public class DownstreamBridge extends KillableThread {
 								if(id != clientPlayerId) {
 									Packet destroy = new Packet1DDestroyEntity(id);
 									try {
-										limiter.pass(packet.end - packet.start);
-										synchronized(out) {
-											out.sendPacket(destroy);
-										}
+										fm.addPacketToHighQueue(out, destroy, this);
 									} catch (IOException ioe) {
 										kill();
 										continue;
@@ -196,10 +182,7 @@ public class DownstreamBridge extends KillableThread {
 								int z = ConnectionInfo.getZ(chunk);
 								Packet unload = new Packet32PreChunk(x, z, false);
 								try {
-									limiter.pass(packet.end - packet.start);
-									synchronized(out) {
-										out.sendPacket(unload);
-									}
+									fm.addPacketToHighQueue(out, unload, this);
 								} catch (IOException ioe) {
 									kill();
 									continue;
@@ -212,10 +195,7 @@ public class DownstreamBridge extends KillableThread {
 					} 
 
 					try {
-						limiter.pass(packet.end - packet.start);
-						synchronized(out) {
-							out.sendPacket(packet);
-						}
+						fm.addPacketToHighQueue(out, packet, this);
 					} catch (IOException ioe) {
 						kill();
 						continue;
