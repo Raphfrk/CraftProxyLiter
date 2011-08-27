@@ -242,36 +242,43 @@ public class LoginManager {
 
 	static boolean authenticate( String username , String hashString, PassthroughConnection ptc )  {
 
-		try {
-			String encodedUsername =  URLEncoder.encode(username, "UTF-8");
-			String encodedHashString =  URLEncoder.encode(hashString, "UTF-8");
-			String authURLString = new String( "http://www.minecraft.net/game/checkserver.jsp?user=" + encodedUsername + "&serverId=" + encodedHashString);
-			if(!Globals.isQuiet()) {
-				ptc.printLogMessage("Authing with " + authURLString);
-			}
-			URL minecraft = new URL(authURLString);
-			URLConnection minecraftConnection = minecraft.openConnection();
-			BufferedReader in = new BufferedReader(new InputStreamReader(minecraftConnection.getInputStream()));
-
-			String reply = in.readLine();
-
-			if( Globals.isInfo() ) {
-				ptc.printLogMessage("Server Response: " + reply );
-			}
-
-			in.close();
-
-			if( reply != null && reply.equals("YES")) {
-
+		for (int i = 0; i < 5; i++) {
+			try {
+				String encodedUsername =  URLEncoder.encode(username, "UTF-8");
+				String encodedHashString =  URLEncoder.encode(hashString, "UTF-8");
+				String authURLString = new String( "http://www.minecraft.net/game/checkserver.jsp?user=" + encodedUsername + "&serverId=" + encodedHashString);
 				if(!Globals.isQuiet()) {
-					ptc.printLogMessage("Auth successful");
+					ptc.printLogMessage("Authing with " + authURLString);
 				}
-				return true;
+				URL minecraft = new URL(authURLString);
+				BufferedReader in = new BufferedReader(new InputStreamReader(minecraft.openStream()));
+
+				String reply = in.readLine();
+
+				if( Globals.isInfo() ) {
+					ptc.printLogMessage("Server Response: " + reply );
+				}
+
+				in.close();
+
+				if( reply != null && reply.equals("YES")) {
+
+					if(!Globals.isQuiet()) {
+						ptc.printLogMessage("Auth successful");
+					}
+					return true;
+				}
+			} catch (MalformedURLException mue) {
+				ptc.printLogMessage("Auth URL error");
+				return false;
+			} catch (IOException ioe) {
+				if (i < 5) {
+					ptc.printLogMessage("Problem connecting to auth server - trying again");
+				} else {
+					ptc.printLogMessage("Problem connecting to auth server");
+					return false;
+				}
 			}
-		} catch (MalformedURLException mue) {
-			ptc.printLogMessage("Auth URL error");
-		} catch (IOException ioe) {
-			ptc.printLogMessage("Problem connecting to auth server");
 		}
 
 		return false;
