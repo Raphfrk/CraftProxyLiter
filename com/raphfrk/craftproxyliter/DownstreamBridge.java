@@ -10,6 +10,7 @@ import com.raphfrk.protocol.EntityMap;
 import com.raphfrk.protocol.KillableThread;
 import com.raphfrk.protocol.Packet;
 import com.raphfrk.protocol.Packet03Chat;
+import com.raphfrk.protocol.Packet09Respawn;
 import com.raphfrk.protocol.Packet1DDestroyEntity;
 import com.raphfrk.protocol.Packet32PreChunk;
 import com.raphfrk.protocol.Packet46Bed;
@@ -154,8 +155,17 @@ public class DownstreamBridge extends KillableThread {
 						ptc.connectionInfo.setHostname(newHostname);
 						if(newHostname != null) {
 							ptc.connectionInfo.redirect = true;
-						}
-						if(newHostname != null) {
+							
+							Packet09Respawn normalPacket = new Packet09Respawn((byte)0);
+							Packet09Respawn netherPacket = new Packet09Respawn((byte)-1);
+							try {
+								fm.addPacketToHighQueue(out, normalPacket, this);
+								fm.addPacketToHighQueue(out, netherPacket, this);
+							} catch (IOException ioe) {
+								kill();
+								continue;
+							}
+							
 							Packet packetBed = new Packet46Bed(2);
 							try {
 								fm.addPacketToHighQueue(out, packetBed, this);
