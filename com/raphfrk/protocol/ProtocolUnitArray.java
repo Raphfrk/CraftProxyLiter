@@ -11,6 +11,8 @@ public class ProtocolUnitArray {
 		SHORT_SIZED_QUAD,
 		INT_SIZED,
 		INT_SIZED_TRIPLE,
+		INT_SIZED_QUAD,
+		INT_SIZED_INT_SIZED_SINGLE,
 		META_DATA,
 		OPTIONAL_MOTION,
 		ITEM,
@@ -27,6 +29,8 @@ public class ProtocolUnitArray {
 	public static OpPair metaData         = new OpPair(Op.META_DATA, 0);
 	public static OpPair intSized         = new OpPair(Op.INT_SIZED, 0);
 	public static OpPair intSizedTriple   = new OpPair(Op.INT_SIZED_TRIPLE, 0);
+	public static OpPair intSizedQuad     = new OpPair(Op.INT_SIZED_QUAD, 0);
+	public static OpPair intSizedIntSized = new OpPair(Op.INT_SIZED_INT_SIZED_SINGLE, 0);
 	
 	public static OpPair optionalMotion   = new OpPair(Op.OPTIONAL_MOTION, 0);
 	

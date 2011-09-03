@@ -60,6 +60,9 @@ public class ProxyListener extends KillableThread {
 		ProtocolUnitArray.ops[0xC3] = new ProtocolUnitArray.Op[] {ProtocolUnitArray.Op.JUMP_FIXED, ProtocolUnitArray.Op.INT_SIZED};
 		ProtocolUnitArray.params[0xC3] = new int[] {5, 0};
 		
+		ProtocolUnitArray.ops[0xE6] = new ProtocolUnitArray.Op[] {ProtocolUnitArray.Op.JUMP_FIXED, ProtocolUnitArray.Op.INT_SIZED_QUAD, ProtocolUnitArray.Op.INT_SIZED_QUAD, ProtocolUnitArray.Op.INT_SIZED_INT_SIZED_SINGLE};
+		ProtocolUnitArray.params[0xE6] = new int[] {8, 0, 0, 0};
+		
 		ServerSocket listener = null;
 		try {
 			listener = new ServerSocket(port, 0, listenAddress);

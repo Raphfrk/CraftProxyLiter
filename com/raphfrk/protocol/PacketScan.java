@@ -33,7 +33,7 @@ public class PacketScan {
 		int position = start;
 		
 		int packetId = buffer[position & mask] & 0xff;
-
+		
 		ProtocolUnitArray.Op[] ops     = ProtocolUnitArray.ops[packetId];
 		int[]                  params  = ProtocolUnitArray.params[packetId];
 
@@ -160,6 +160,66 @@ public class PacketScan {
 				}
 				position = (position + size);
 				if(size < 0) {
+					return null;
+				}
+				break;
+			}
+			case INT_SIZED_QUAD: {
+				int size = getInt(buffer, position, mask)<<2;
+				position = (position + 4);
+				if(size > maxPacketSize) {
+					if(position - start <= dataLength) {
+						System.err.println("Size to large in int sized quad byte array");
+						System.out.println("Size to large in int sized quad byte array");
+					}
+					return null;
+				}
+				position = (position + size);
+				if(size < 0) {
+					return null;
+				}
+				break;
+			}
+			case INT_SIZED_INT_SIZED_SINGLE: {
+				int size1 = getInt(buffer, position, mask)<<2;
+				if (size1 < 0) {
+					return null;
+				}
+				if (size1 > 65536) {
+					if( position - start <= dataLength) {
+						System.err.println("Size1 to large in int sized (int sized byte array) array");
+						System.out.println("Size1 to large in int sized (int sized byte array) array");
+					}
+					return null;
+				}
+				position = (position + 4);
+				int totalSize = 4;
+				for (int i = 0; i < size1; i++) {
+					if (position - start > dataLength) {
+						return null;
+					}
+					if(totalSize > maxPacketSize) {
+						if(position - start <= dataLength) {
+							System.err.println("Size to large in int sized (int sized byte array) array");
+							System.out.println("Size to large in int sized (int sized byte array) array");
+						}
+					return null;
+					}
+					int size2 = getInt(buffer, position, mask);
+					if (size2 < 0) {
+						return null;
+					}
+					if (size2 > 65536) {
+						if( position - start <= dataLength) {
+							System.err.println("Size2 to large in int sized (int sized byte array) array");
+							System.out.println("Size2 to large in int sized (int sized byte array) array");
+						}
+						return null;
+					}
+					position += 4 + size2;
+					totalSize += 4 + size2;
+				}
+				if (totalSize > maxPacketSize) {
 					return null;
 				}
 				break;
