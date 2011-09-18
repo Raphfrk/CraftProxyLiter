@@ -6,8 +6,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
+import java.net.Socket;
 import java.net.URL;
-import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
@@ -15,10 +15,11 @@ import java.security.SecureRandom;
 import com.raphfrk.protocol.Packet;
 import com.raphfrk.protocol.Packet01Login;
 import com.raphfrk.protocol.Packet02Handshake;
+import com.raphfrk.protocol.PacketFFKick;
 
 public class LoginManager {
 
-	public static String getUsername(LocalSocket clientSocket, ConnectionInfo info, PassthroughConnection ptc) {
+	public static String getUsername(LocalSocket clientSocket, ConnectionInfo info, PassthroughConnection ptc, String pingHostname, Integer pingPort) {
 		Packet packet = new Packet();
 
 		try {
@@ -41,6 +42,46 @@ public class LoginManager {
 			info.setHostname(proxyLogin.getHostname());
 			info.forwardConnection = true;
 			ptc.printLogMessage("Proxy to proxy connection received, forwarding to " + ptc.connectionInfo.getHostname());
+		} else if ((packet.getByte(0) & 0xFF) == 0xFE) {
+			if (pingPort == null || pingHostname == null) {
+				return "Server offline";
+			} else {
+				ptc.printLogMessage("Forwarding ping");
+				Socket serverSocket;
+				try {
+					serverSocket = new Socket(pingHostname, pingPort);
+				} catch (IOException ioe) {
+					return "Unable to connect";
+				}
+				LocalSocket serverLocalSocket;
+				try {
+					serverSocket.setSoTimeout(500);
+					serverLocalSocket = new LocalSocket(serverSocket, ptc);
+				} catch (IOException ioe) {
+					return "Unable to connect";
+				}
+				try {
+					serverLocalSocket.pout.sendPacket(packet);
+				} catch (IOException e) {
+					serverLocalSocket.closeSocket(ptc);
+					return "Send ping failure";
+				}
+				Packet recv = new Packet();
+				try {
+					recv = serverLocalSocket.pin.getPacket(recv);
+				} catch (IOException e) {
+					serverLocalSocket.closeSocket(ptc);
+					return "Receive ping failure";
+				}
+				serverLocalSocket.closeSocket(ptc);
+				if ((recv.getByte(0) & 0xFF) == 0xFF) {
+					PacketFFKick kick = new PacketFFKick(recv);
+					return kick.getString16(1);
+				} else {
+					return "Bad ping kick packet";
+				}
+				
+			}
 		} else {
 			return "Unknown login packet id " + packet.getByte(0);
 		}

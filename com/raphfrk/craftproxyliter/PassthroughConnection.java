@@ -49,7 +49,10 @@ public class PassthroughConnection extends KillableThread {
 		// Get username/handshake packet
 		String reply;
 
-		reply = LoginManager.getUsername(clientLocalSocket, connectionInfo, this);
+		String hostnameForPing = RedirectManager.getNextHostname(listenHostname, defaultHostname);
+		Integer portnumForPing = RedirectManager.getNextPort(listenHostname, defaultHostname);
+		
+		reply = LoginManager.getUsername(clientLocalSocket, connectionInfo, this, hostnameForPing, portnumForPing);
 
 		if(reply != null) {
 			sendKickMessageAndClose(clientLocalSocket, reply);
