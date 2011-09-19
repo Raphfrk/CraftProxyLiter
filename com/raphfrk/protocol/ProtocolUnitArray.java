@@ -51,7 +51,7 @@ public class ProtocolUnitArray {
 		opPairs[0x06] = new OpPair[] {jump(13)};
 		opPairs[0x07] = new OpPair[] {jump(10)};
 		opPairs[0x08] = new OpPair[] {jump(9)};
-		opPairs[0x09] = new OpPair[] {jump(13)};
+		opPairs[0x09] = new OpPair[] {jump(14)};
 		opPairs[0x0A] = new OpPair[] {jump(2)};
 		opPairs[0x0B] = new OpPair[] {jump(34)};
 		opPairs[0x0C] = new OpPair[] {jump(10)};
