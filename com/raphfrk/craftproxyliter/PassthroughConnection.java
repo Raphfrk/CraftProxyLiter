@@ -19,9 +19,10 @@ public class PassthroughConnection extends KillableThread {
 	final String defaultHostname;
 	final String listenHostname;
 	final FairnessManager fairnessManager;
-	final ProxyListener proxyListener;
+	public final ProxyListener proxyListener;
+	public final String IPAddress;
 
-	PassthroughConnection(Socket clientSocket, String hostname, String listenHostname, FairnessManager fairnessManager, ProxyListener proxyListener) {
+	PassthroughConnection(Socket clientSocket, String address, String hostname, String listenHostname, FairnessManager fairnessManager, ProxyListener proxyListener) {
 
 		this.clientSocket = clientSocket;
 		this.listenHostname = listenHostname;
@@ -31,6 +32,7 @@ public class PassthroughConnection extends KillableThread {
 		this.fairnessManager = fairnessManager;
 		this.proxyListener = proxyListener;
 		setName("Passthrough connection - " + System.currentTimeMillis());
+		this.IPAddress = address;
 
 	}
 

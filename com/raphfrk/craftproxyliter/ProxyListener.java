@@ -37,7 +37,10 @@ public class ProxyListener extends KillableThread {
 		setName("Proxy Listener");
 	}
 
-	ConcurrentHashMap<String,Long> lastLogin = new ConcurrentHashMap<String,Long>();
+	public ConcurrentHashMap<String,Long> lastLogin = new ConcurrentHashMap<String,Long>();
+	public ConcurrentHashMap<String,Long> lastLoginOld = new ConcurrentHashMap<String,Long>();
+	public ConcurrentHashMap<String,Long> lastPing = new ConcurrentHashMap<String,Long>();
+	
 	HashStore hs = new HashStore(new File("CPL_cache"));
 	
 	@Override
@@ -152,6 +155,11 @@ public class ProxyListener extends KillableThread {
 			long currentTime = System.currentTimeMillis();
 			Long lastConnect = lastLogin.get(address);
 			boolean floodProtection = !address.equals("127.0.0.1") && Globals.isFlood() && lastConnect != null && lastConnect + 5000 > currentTime;
+			if (lastConnect != null) {
+				lastLoginOld.put(address, lastConnect);
+			} else {
+				lastLoginOld.remove(address);
+			}
 			lastLogin.put(address, currentTime);
 			if(floodProtection) {
 				Logging.log("Disconnecting due to connect flood protection");
@@ -166,7 +174,7 @@ public class ProxyListener extends KillableThread {
 				}
 			} else {
 				try {
-					PassthroughConnection ptc = new PassthroughConnection(socket, defaultHostname,  listenHostname, fairnessManager, this);
+					PassthroughConnection ptc = new PassthroughConnection(socket, address, defaultHostname,  listenHostname, fairnessManager, this);
 					ptc.start();
 					if(Main.craftGUI != null) {
 						Main.craftGUI.safeSetStatus("Client connected: " + address + "/" + port);
