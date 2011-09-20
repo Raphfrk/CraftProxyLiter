@@ -18,8 +18,26 @@ public class Packet01Login extends Packet {
 		return getLong(5 + getString16Length(5));
 	}
 	
-	public byte getDimension() {
-		return getByte(13 + getString16Length(5));
+	public int getMode() {
+		return getInt(13 + getString16Length(5));
 	}
+	
+	public byte getDimension() {
+		return getByte(15 + getString16Length(5));
+	}
+	
+	public byte getUnknown() {
+		return getByte(16 + getString16Length(5));
+	}
+	
+	public byte getHeight() {
+		return getByte(17 + getString16Length(5));
+	}
+	
+	public byte getMaxPlayers() {
+		return getByte(18 + getString16Length(5));
+	}
+	
+	
 
 }

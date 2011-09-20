@@ -35,6 +35,9 @@ public class ConnectionInfo {
 	public boolean forwardConnection = false;
 	
 	public byte loginDimension = 0;
+	public byte loginUnknownRespawn = 0;
+	public byte loginCreative = 0;
+	public short loginHeight = 128;
 	public long loginSeed = 0;
 	
 	private String username;

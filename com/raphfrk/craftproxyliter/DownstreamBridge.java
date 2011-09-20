@@ -156,8 +156,8 @@ public class DownstreamBridge extends KillableThread {
 						if(newHostname != null) {
 							ptc.connectionInfo.redirect = true;
 							
-							Packet09Respawn normalPacket = new Packet09Respawn((byte)0);
-							Packet09Respawn netherPacket = new Packet09Respawn((byte)-1);
+							Packet09Respawn normalPacket = new Packet09Respawn((byte)0, (byte)2, (byte)0, (short)128, 0L);
+							Packet09Respawn netherPacket = new Packet09Respawn((byte)-1, (byte)2, (byte)0, (short)128, 0L);
 							try {
 								fm.addPacketToHighQueue(out, normalPacket, this);
 								fm.addPacketToHighQueue(out, netherPacket, this);
@@ -166,7 +166,7 @@ public class DownstreamBridge extends KillableThread {
 								continue;
 							}
 							
-							Packet packetBed = new Packet46Bed(2);
+							Packet packetBed = new Packet46Bed(2, 0);
 							try {
 								fm.addPacketToHighQueue(out, packetBed, this);
 							} catch (IOException ioe) {

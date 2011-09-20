@@ -139,7 +139,6 @@ public class LoginManager {
 				ptc.printLogMessage("WARNING: attempting to log into another proxy which has authentication enabled but password has not been set");
 			} else {
 				String confirmCode = sha1Hash(password + hash);
-				System.out.println("Sending code: " + confirmCode);
 				Packet code = new Packet52ProxyLogin(confirmCode, info.getHostname(), info.getUsername());
 				System.out.println("Sent 0x52 packet");
 				try {
@@ -210,11 +209,15 @@ public class LoginManager {
 			
 		} else {
 			String username = info.getUsername();
-			packet = new Packet(100);
+			packet = new Packet(200);
 			packet.writeByte((byte)0x01);
 			packet.writeInt(info.clientVersion);
 			packet.writeString16(username.substring(0,Math.min(16, username.length())));
 			packet.writeLong(0);
+			packet.writeInt(0);
+			packet.writeByte((byte)0);
+			packet.writeByte((byte)0);
+			packet.writeByte((byte)0);
 			packet.writeByte((byte)0);	
 		}
 
@@ -251,6 +254,9 @@ public class LoginManager {
 
 		info.serverPlayerId = StCLogin.getVersion();
 		info.loginDimension = StCLogin.getDimension();
+		info.loginUnknownRespawn = StCLogin.getUnknown();
+		info.loginCreative = (byte)StCLogin.getMode();
+		info.loginHeight = StCLogin.getHeight();
 		info.loginSeed = StCLogin.getSeed();
 		
 		if(!reconnect) {
