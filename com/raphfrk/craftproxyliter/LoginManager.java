@@ -67,7 +67,7 @@ public class LoginManager {
 				}
 				LocalSocket serverLocalSocket;
 				try {
-					serverSocket.setSoTimeout(500);
+					serverSocket.setSoTimeout(1000);
 					serverLocalSocket = new LocalSocket(serverSocket, ptc);
 				} catch (IOException ioe) {
 					return "Unable to connect";

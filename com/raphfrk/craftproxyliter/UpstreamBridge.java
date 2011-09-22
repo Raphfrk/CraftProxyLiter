@@ -33,6 +33,9 @@ public class UpstreamBridge extends KillableThread {
 	LinkedList<Byte> oldPacketIds = new LinkedList<Byte>();
 
 	public void run() {
+		
+		int netTimeout = Globals.getNetTimeout();
+		int netTimeoutCount = netTimeout * 10;
 
 		Packet hashPacket = new Packet();
 		hashPacket.buffer = new byte[2049*8];
@@ -96,7 +99,7 @@ public class UpstreamBridge extends KillableThread {
 			try {
 				packet = in.getPacket(packet, 100);
 				if(packet == null) {
-					if((timeoutCounter++) > 600) {
+					if((timeoutCounter++) > netTimeoutCount) {
 						ptc.printLogMessage("Timeout");
 						kill();
 						continue;

@@ -67,6 +67,7 @@ public class Main {
 			Logging.log("    info:                 Gives more information");
 			Logging.log("    debug:                Gives debug info");
 			Logging.log("    bufferlatency:        Sets buffers max latency");
+			Logging.log("    timeout:              Sets the network timeout in seconds (default is 60 seconds)");
 			Logging.log("    log_time_off:         Turns off time for logging");
 
 			if(consoleInput) {
@@ -107,6 +108,7 @@ public class Main {
 					else if( args[pos].equals("seed"))       { Globals.setSeed(Long.parseLong(args[pos+1])); pos++;}
 					else if( args[pos].equals("blockredirects"))       { Globals.setAllowRedirect(false);}
 					else if( args[pos].equals("log_time_off"))       { Globals.setLogTime(false);}
+					else if( args[pos].equals("timeout"))       { Globals.setNetTimeout(Integer.parseInt(args[pos+1])); pos++;}
 					else if( args[pos].equals("log"))              { Logging.setFilename(args[pos+1]) ; pos++;}
 					else                                        {System.out.println("Unknown field: " + args[pos]); System.exit(0);}
 

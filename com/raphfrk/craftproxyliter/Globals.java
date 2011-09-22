@@ -270,6 +270,26 @@ public class Globals {
 		Globals.fairness = fairness;
 	}
 	
+	static private int SOTimeout = 200;
+	
+	public synchronized static int getSOTimeout() {
+		return SOTimeout;
+	}
+	
+	public synchronized static void setSOTimeout( int SOTimeout ) {
+		Globals.SOTimeout = SOTimeout;
+	}
+	
+	static private int netTimeout = 60;
+	
+	public synchronized static int getNetTimeout() {
+		return netTimeout;
+	}
+	
+	public synchronized static void setNetTimeout( int netTimeout ) {
+		Globals.netTimeout = netTimeout;
+	}
+	
 	static private long window = 0;
 	
 	public synchronized static long getWindow() {

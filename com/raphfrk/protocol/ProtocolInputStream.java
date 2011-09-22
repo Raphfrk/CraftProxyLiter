@@ -4,7 +4,8 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.SocketTimeoutException;
-import java.util.concurrent.TimeoutException;
+
+import com.raphfrk.craftproxyliter.Globals;
 
 
 public class ProtocolInputStream {
@@ -18,7 +19,7 @@ public class ProtocolInputStream {
 	private int start;
 	private int length;
 
-	final private int timeout = 60000;
+	final private int timeout = Globals.getNetTimeout() * 1000;
 
 
 	public ProtocolInputStream(InputStream in, int size) {
