@@ -47,14 +47,14 @@ public class LoginManager {
 			String address = ptc.IPAddress;
 			Long lastPing = ptc.proxyListener.lastPing.get(address);
 			ptc.proxyListener.lastPing.put(address, currentTime);
-			if (lastPing == null || lastPing + 5000 < currentTime) {
+			//if (lastPing == null || lastPing + 5000 < currentTime) {
 				Long oldLastLogin = ptc.proxyListener.lastLoginOld.get(address);
 				if (oldLastLogin == null) {
 					ptc.proxyListener.lastLogin.remove(address);
 				} else {
 					ptc.proxyListener.lastLogin.put(address, oldLastLogin);
 				}
-			}
+			//}
 			if (pingPort == null || pingHostname == null) {
 				return "Server offline";
 			} else {
