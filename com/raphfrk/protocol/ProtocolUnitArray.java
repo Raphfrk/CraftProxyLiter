@@ -1,5 +1,7 @@
 package com.raphfrk.protocol;
 
+import java.util.HashSet;
+
 
 public class ProtocolUnitArray {
 
@@ -36,8 +38,59 @@ public class ProtocolUnitArray {
 	
 	public static OpPair item             = new OpPair(Op.ITEM, 0);
 	public static OpPair itemArray        = new OpPair(Op.ITEM_ARRAY, 0);
+	public static HashSet<Short> enchantedItemsIds = new HashSet<Short>();
 
 	static {
+		
+		enchantedItemsIds.add((short)0x100);
+		enchantedItemsIds.add((short)0x101);
+		enchantedItemsIds.add((short)0x102);
+		enchantedItemsIds.add((short)0x103);
+		enchantedItemsIds.add((short)0x105);
+		enchantedItemsIds.add((short)0x10B);
+		enchantedItemsIds.add((short)0x10C);
+		enchantedItemsIds.add((short)0x10D);
+		enchantedItemsIds.add((short)0x10E);
+		enchantedItemsIds.add((short)0x10F);
+		enchantedItemsIds.add((short)0x110);
+		enchantedItemsIds.add((short)0x111);
+		enchantedItemsIds.add((short)0x112);
+		enchantedItemsIds.add((short)0x113);
+		enchantedItemsIds.add((short)0x114);
+		enchantedItemsIds.add((short)0x115);
+		enchantedItemsIds.add((short)0x116);
+		enchantedItemsIds.add((short)0x117);
+		enchantedItemsIds.add((short)0x11B);
+		enchantedItemsIds.add((short)0x11C);
+		enchantedItemsIds.add((short)0x11D);
+		enchantedItemsIds.add((short)0x11E);
+		enchantedItemsIds.add((short)0x122);
+		enchantedItemsIds.add((short)0x123);
+		enchantedItemsIds.add((short)0x124);
+		enchantedItemsIds.add((short)0x125);
+		enchantedItemsIds.add((short)0x126);
+		enchantedItemsIds.add((short)0x12A);
+		enchantedItemsIds.add((short)0x12B);
+		enchantedItemsIds.add((short)0x12C);
+		enchantedItemsIds.add((short)0x12D);
+		enchantedItemsIds.add((short)0x12E);
+		enchantedItemsIds.add((short)0x12F);
+		enchantedItemsIds.add((short)0x130);
+		enchantedItemsIds.add((short)0x131);
+		enchantedItemsIds.add((short)0x132);
+		enchantedItemsIds.add((short)0x133);
+		enchantedItemsIds.add((short)0x134);
+		enchantedItemsIds.add((short)0x135);
+		enchantedItemsIds.add((short)0x136);
+		enchantedItemsIds.add((short)0x137);
+		enchantedItemsIds.add((short)0x138);
+		enchantedItemsIds.add((short)0x139);
+		enchantedItemsIds.add((short)0x13A);
+		enchantedItemsIds.add((short)0x13B);
+		enchantedItemsIds.add((short)0x13C);
+		enchantedItemsIds.add((short)0x14D);
+		enchantedItemsIds.add((short)0x15A);
+		enchantedItemsIds.add((short)0x167);
 
 		OpPair[][] opPairs = new OpPair[256][];
 
@@ -82,7 +135,7 @@ public class ProtocolUnitArray {
 		opPairs[0x28] = new OpPair[] {jump(5), metaData};
 		opPairs[0x29] = new OpPair[] {jump(9)};
 		opPairs[0x2A] = new OpPair[] {jump(6)};
-		opPairs[0x2B] = new OpPair[] {jump(5)};
+		opPairs[0x2B] = new OpPair[] {jump(9)};
 		opPairs[0x32] = new OpPair[] {jump(10)};
 		opPairs[0x33] = new OpPair[] {jump(14), intSized};
 		opPairs[0x34] = new OpPair[] {jump(9), shortSizedQuad};
@@ -99,7 +152,8 @@ public class ProtocolUnitArray {
 		opPairs[0x68] = new OpPair[] {jump(2), itemArray};
 		opPairs[0x69] = new OpPair[] {jump(6)};	
 		opPairs[0x6A] = new OpPair[] {jump(5)};	
-		opPairs[0x6B] = new OpPair[] {jump(9)};	
+		opPairs[0x6B] = new OpPair[] {jump(3), item};	
+		opPairs[0x6C] = new OpPair[] {jump(3)};	
 		opPairs[0x82] = new OpPair[] {jump(11), string16, string16, string16, string16};	
 		opPairs[0x83] = new OpPair[] {jump(5), byteSized};
 		opPairs[0xC8] = new OpPair[] {jump(6)};	

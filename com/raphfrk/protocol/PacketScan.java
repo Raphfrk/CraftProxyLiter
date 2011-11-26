@@ -279,11 +279,7 @@ public class PacketScan {
 				break;
 			}
 			case ITEM: {
-				short type = getShort(buffer, position, mask);
-				position = (position + 2);
-				if(type != -1) {
-					position = (position + 3);
-				}
+				position = getItem(buffer, position, mask);
 				break;
 			}
 			case ITEM_ARRAY: {
@@ -297,11 +293,7 @@ public class PacketScan {
 					return null;
 				}
 				for(int c=0; c<count && position - start <= dataLength; c++) {
-					short type = getShort(buffer, position, mask);
-					position = (position + 2);
-					if(type != -1) {
-						position = (position + 3);
-					}
+					position = getItem(buffer, position, mask);
 				}
 				break;
 			}
@@ -330,6 +322,24 @@ public class PacketScan {
 
 		return packet;
 
+	}
+	
+	static int getItem(byte[] buffer, int position, int mask) {
+		
+		short type = getShort(buffer, position, mask);
+		position = (position + 2);
+		if(type != -1) {
+			position = (position + 3);
+			if(ProtocolUnitArray.enchantedItemsIds.contains(type)) {
+				short length = getShort(buffer, position, mask);
+				position = (position + 2);
+				if(length >= 0) {
+					position += length;
+				}
+			}
+		}
+		
+		return position;
 	}
 	
 	static byte getByte(byte[] buffer, int position, int mask) {
