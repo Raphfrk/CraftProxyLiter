@@ -151,7 +151,7 @@ public class Globals {
 		authenticate = newAuth;
 	}
 	
-	static private boolean varyLocalhost = false;
+	static private boolean varyLocalhost = true;
 	
 	public synchronized static boolean varyLocalhost() {
 		return varyLocalhost;

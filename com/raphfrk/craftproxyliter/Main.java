@@ -45,8 +45,8 @@ public class Main {
 			Logging.log( "Usage: " + usageString );
 			Logging.log("    auth                  Switches on authentication (not needed)");
 			Logging.log("    auth_off              Proxy leaves authentication to Minecraft server");
-			Logging.log("    staticlocalhost       Forces use of 127.0.0.1 for localhost (depreciated)");
-			Logging.log("    rotatelocalhost       Uses a different 127.0.x.y for each connection to localhost (depreciated)");
+			Logging.log("    staticlocalhost       Forces use of 127.0.0.1 for localhost");
+			Logging.log("    rotatelocalhost       Uses a different 127.0.x.y for each connection to localhost");
 			Logging.log("    clientversion  <num>  Allows manually setting of client version");
 			Logging.log("    password <password>   Sets password for multi-LAN/global mode");
 			Logging.log("    adminname <name>      The user <name> can use the /memdump command to perform a heap dump");
