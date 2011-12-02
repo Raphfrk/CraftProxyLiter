@@ -293,7 +293,7 @@ public class LoginManager {
 	static String getHashString() {
 		long hashLong;
 		synchronized( hashGenerator ) {
-			hashLong = hashGenerator.nextLong();
+			hashLong = hashGenerator.nextLong() & 0x7FFFFFFFFFFFFFFFL;
 		}
 
 		return Long.toHexString(hashLong);
