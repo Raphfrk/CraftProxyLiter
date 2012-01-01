@@ -88,7 +88,7 @@ public class ProtocolUnitArray {
 		enchantedItemsIds.add((short)0x13A);
 		enchantedItemsIds.add((short)0x13B);
 		enchantedItemsIds.add((short)0x13C);
-		enchantedItemsIds.add((short)0x14D);
+		enchantedItemsIds.add((short)0x13D);
 		enchantedItemsIds.add((short)0x15A);
 		enchantedItemsIds.add((short)0x167);
 
