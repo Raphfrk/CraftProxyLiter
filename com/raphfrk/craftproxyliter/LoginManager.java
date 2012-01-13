@@ -291,6 +291,7 @@ public class LoginManager {
 		info.loginCreative = (byte)StCLogin.getMode();
 		info.loginHeight = StCLogin.getHeight();
 		info.loginSeed = StCLogin.getSeed();
+		info.levelType = StCLogin.getLevelType();
 		
 		if(!reconnect) {
 			info.clientPlayerId = StCLogin.getVersion();

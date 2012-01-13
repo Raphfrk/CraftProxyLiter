@@ -60,6 +60,7 @@ public class ConnectionInfo {
 	public byte loginCreative = 0;
 	public short loginHeight = 128;
 	public long loginSeed = 0;
+	public String levelType = "DEFAULT";
 	
 	private String username;
 	

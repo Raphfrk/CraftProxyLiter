@@ -177,8 +177,8 @@ public class DownstreamBridge extends KillableThread {
 						if(newHostname != null) {
 							ptc.connectionInfo.redirect = true;
 							
-							Packet09Respawn normalPacket = new Packet09Respawn((byte)0, (byte)2, (byte)0, (short)128, 0L);
-							Packet09Respawn netherPacket = new Packet09Respawn((byte)-1, (byte)2, (byte)0, (short)128, 0L);
+							Packet09Respawn normalPacket = new Packet09Respawn((byte)0, (byte)2, (byte)0, (short)128, 0L, "DEFAULT");
+							Packet09Respawn netherPacket = new Packet09Respawn((byte)-1, (byte)2, (byte)0, (short)128, 0L, "DEFAULT");
 							try {
 								fm.addPacketToHighQueue(out, normalPacket, this);
 								fm.addPacketToHighQueue(out, netherPacket, this);

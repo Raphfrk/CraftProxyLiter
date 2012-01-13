@@ -176,8 +176,8 @@ public class PassthroughConnection extends KillableThread {
 			
 			if(!firstConnection) {
 				byte otherDimension = (byte)((connectionInfo.loginDimension == 0) ? -1 : 0); 
-				Packet09Respawn otherDimensionPacket = new Packet09Respawn(otherDimension, (byte)2, (byte)0, (short)128, 0L);
-				Packet09Respawn dimensionPacket = new Packet09Respawn(connectionInfo.loginDimension, connectionInfo.loginUnknownRespawn, connectionInfo.loginCreative, connectionInfo.loginHeight, connectionInfo.loginSeed);
+				Packet09Respawn otherDimensionPacket = new Packet09Respawn(otherDimension, (byte)2, (byte)0, (short)128, 0L, "DEFAULT");
+				Packet09Respawn dimensionPacket = new Packet09Respawn(connectionInfo.loginDimension, connectionInfo.loginUnknownRespawn, connectionInfo.loginCreative, connectionInfo.loginHeight, connectionInfo.loginSeed, connectionInfo.levelType);
 				try {
 					clientLocalSocket.pout.sendPacket(otherDimensionPacket);
 					clientLocalSocket.pout.sendPacket(dimensionPacket);

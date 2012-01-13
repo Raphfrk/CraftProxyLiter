@@ -48,6 +48,7 @@ public class ProtocolUnitArray {
 	public static OpPair string8          = new OpPair(Op.SHORT_SIZED, 0);
 	public static OpPair string16         = new OpPair(Op.SHORT_SIZED_DOUBLED, 0);
 	public static OpPair byteSized        = new OpPair(Op.BYTE_SIZED, 0);
+	public static OpPair shortSized       = new OpPair(Op.SHORT_SIZED, 0);
 	public static OpPair shortSizedQuad   = new OpPair(Op.SHORT_SIZED_QUAD, 0);
 	public static OpPair metaData         = new OpPair(Op.META_DATA, 0);
 	public static OpPair intSized         = new OpPair(Op.INT_SIZED, 0);
@@ -117,7 +118,7 @@ public class ProtocolUnitArray {
 
 		// Packet Id byte must be included
 		opPairs[0x00] = new OpPair[] {jump(5)};
-		opPairs[0x01] = new OpPair[] {jump(5), string16, jump(16)};
+		opPairs[0x01] = new OpPair[] {jump(5), string16, jump(8), string16, jump(8)};
 		opPairs[0x02] = new OpPair[] {jump(1), string16};
 		opPairs[0x03] = new OpPair[] {jump(1), string16};
 		opPairs[0x04] = new OpPair[] {jump(9)};
@@ -125,7 +126,7 @@ public class ProtocolUnitArray {
 		opPairs[0x06] = new OpPair[] {jump(13)};
 		opPairs[0x07] = new OpPair[] {jump(10)};
 		opPairs[0x08] = new OpPair[] {jump(9)};
-		opPairs[0x09] = new OpPair[] {jump(14)};
+		opPairs[0x09] = new OpPair[] {jump(14), string16};
 		opPairs[0x0A] = new OpPair[] {jump(2)};
 		opPairs[0x0B] = new OpPair[] {jump(34)};
 		opPairs[0x0C] = new OpPair[] {jump(10)};
@@ -179,8 +180,9 @@ public class ProtocolUnitArray {
 		opPairs[0x83] = new OpPair[] {jump(5), byteSized};
 		opPairs[0xC8] = new OpPair[] {jump(6)};	
 		opPairs[0xC9] = new OpPair[] {jump(1), string16, jump(3)};	
+		opPairs[0xFA] = new OpPair[] {string16, shortSized};
 		opPairs[0xFE] = new OpPair[] {jump(1)};	
-		opPairs[0xFF] = new OpPair[] {jump(1), string16};	
+		opPairs[0xFF] = new OpPair[] {jump(1), string16};
 		
 		ops = new Op[256][];
 		params = new int[256][];

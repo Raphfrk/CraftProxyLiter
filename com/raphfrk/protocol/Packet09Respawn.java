@@ -27,14 +27,15 @@ public class Packet09Respawn extends Packet {
 		super(packet, 9);
 	}
 
-	public Packet09Respawn(byte dimension, byte unknown, byte creative, short height, long seed) {
-		super(14);
+	public Packet09Respawn(byte dimension, byte unknown, byte creative, short height, long seed, String levelType) {
+		super(14 + levelType.length() + 2);
 		super.writeByte((byte)0x09);
 		super.writeByte(dimension);
 		super.writeByte(unknown);
 		super.writeByte(creative);
 		super.writeShort(height);
 		super.writeLong(seed);
+		super.writeString16(levelType);
 	}
 	
 	public byte getDimension() {
