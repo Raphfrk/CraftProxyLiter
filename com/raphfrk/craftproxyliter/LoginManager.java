@@ -39,6 +39,8 @@ import com.raphfrk.protocol.Packet02Handshake;
 import com.raphfrk.protocol.PacketFFKick;
 
 public class LoginManager {
+	
+	private static long MAGIC_SEED = 0x0123456789ABCDEFL;
 
 	public static String getUsername(LocalSocket clientSocket, ConnectionInfo info, PassthroughConnection ptc, String pingHostname, Integer pingPort) {
 		Packet packet = new Packet();
@@ -211,7 +213,10 @@ public class LoginManager {
 				if(packet == null) {
 					return "Client didn't send login packet";
 				}
+				packet = new Packet01Login(packet);
 				info.clientVersion = packet.getInt(1);
+				info.craftProxyLogin = ((Packet01Login)packet).getSeed() == MAGIC_SEED;
+				//((Packet01Login)packet).setSeed(MAGIC_SEED);
 			} catch (EOFException eof) {
 				return "Client closed connection before sending login";
 			} catch (IOException ioe) {
@@ -247,6 +252,7 @@ public class LoginManager {
 			packet.writeInt(info.clientVersion);
 			packet.writeString16(username.substring(0,Math.min(16, username.length())));
 			packet.writeLong(0);
+			packet.writeString16("");
 			packet.writeInt(0);
 			packet.writeByte((byte)0);
 			packet.writeByte((byte)0);

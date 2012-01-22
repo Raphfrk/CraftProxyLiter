@@ -39,6 +39,10 @@ public class Packet01Login extends Packet {
 		return getLong(5 + getString16Length(5));
 	}
 	
+	public void setSeed(long seed) {
+		setLong(5 + getString16Length(5), seed);
+	}
+	
 	public String getLevelType() {
 		return getString16(13 + getString16Length(5));
 	}

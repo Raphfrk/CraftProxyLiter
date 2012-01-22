@@ -52,6 +52,7 @@ public class ConnectionInfo {
 	public boolean redirect = false;
 	
 	public int clientVersion = 0;
+	public boolean craftProxyLogin = false;
 	
 	public boolean forwardConnection = false;
 	
