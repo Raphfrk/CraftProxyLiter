@@ -51,7 +51,7 @@ public class ProtocolOutputStream {
 			buffered.write(packet.buffer, start, top - start);
 			buffered.write(packet.buffer, 0, end);
 		} else {
-			/*StringBuilder sb = new StringBuilder(packet + "Sending: " + start + " to " + end + "[ ");
+			/*StringBuilder sb = new StringBuilder(buffered + ":" + "[ ");
 			for(int cnt = start; cnt < end; cnt++) {
 				sb.append(Integer.toHexString(packet.buffer[cnt&packet.mask]&0xFF) + " ");
 			}

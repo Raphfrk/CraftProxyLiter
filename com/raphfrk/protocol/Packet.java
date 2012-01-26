@@ -207,7 +207,7 @@ public class Packet {
 	}
 
 	public int getString16Length(int pos) {
-		return 2 + getShort(pos);
+		return 2 + getShort(pos) * 2;
 	}
 
 	boolean isValid() {

@@ -65,6 +65,13 @@ public class ConnectionInfo {
 	
 	private String username;
 	
+	public String toString() {
+		return "clientplayerId=" + clientPlayerId + ", serverPlayerId=" + serverPlayerId + ", holding=" + holding + ", cacheInUse=" + 
+				cacheInUse.get() + ", clientVersion=" + clientVersion + ", craftProxyLogin=" + craftProxyLogin + ", forwardConnection=" + 
+				forwardConnection + ", loginDimension=" + loginDimension + ", loginCreative=" + loginCreative + ", loginHeight=" + 
+				loginHeight + ", loginSeed=" + loginSeed + ", levelType=" + levelType;
+	}
+	
 	public void setUsername(String username) {
 		this.username = username;
 	}

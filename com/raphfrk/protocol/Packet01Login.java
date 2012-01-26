@@ -52,19 +52,19 @@ public class Packet01Login extends Packet {
 	}
 	
 	public byte getDimension() {
-		return getByte(15 + getString16Length(5) + getString16Length(13 + getString16Length(5)));
-	}
-	
-	public byte getUnknown() {
-		return getByte(16 + getString16Length(5) + getString16Length(13 + getString16Length(5)));
-	}
-	
-	public byte getHeight() {
 		return getByte(17 + getString16Length(5) + getString16Length(13 + getString16Length(5)));
 	}
 	
-	public byte getMaxPlayers() {
+	public byte getUnknown() {
 		return getByte(18 + getString16Length(5) + getString16Length(13 + getString16Length(5)));
+	}
+	
+	public byte getHeight() {
+		return getByte(19 + getString16Length(5) + getString16Length(13 + getString16Length(5)));
+	}
+	
+	public byte getMaxPlayers() {
+		return getByte(20 + getString16Length(5) + getString16Length(13 + getString16Length(5)));
 	}
 
 }
