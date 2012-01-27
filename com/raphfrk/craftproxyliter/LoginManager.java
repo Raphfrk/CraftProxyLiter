@@ -209,8 +209,10 @@ public class LoginManager {
 			}
 			
 			try {
-				packet = clientSocket.pin.getPacket(packet);
-				if(packet == null) {
+				packet = clientSocket.pin.getPacket(packet, 1000);
+				if (packet == null) {
+					return "Malformed Login packet, server/client version mismatch?";
+				} else if (packet.getByte(0) != 1) {
 					return "Client didn't send login packet";
 				}
 				packet = new Packet01Login(packet);

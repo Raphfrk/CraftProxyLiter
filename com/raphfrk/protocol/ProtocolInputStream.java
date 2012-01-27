@@ -78,26 +78,16 @@ public class ProtocolInputStream {
 
 		long startTime = System.currentTimeMillis();
 
-		long packetScanTime = 0;
-
-		long sleepTime = 0;
-
-		long readTime = 0;
-
 		boolean interrupted = false;
 
-		long currentTime = 0;
-		
 		int packetId = -1;
 
 		//System.out.println("Starting new packet read " + startTime);
 
-		while(ret == null && length < bufferLength && startTime + timeout > currentTime && !Thread.currentThread().isInterrupted()) {
+		while(ret == null && length < bufferLength && startTime + timeout > System.currentTimeMillis() && !Thread.currentThread().isInterrupted()) {
 			//System.out.println("Length: " + length);
 			try {
-				packetScanTime -= System.currentTimeMillis();
 				ret = PacketScan.packetScan(buffer, start, length, bufferMask, packet);
-				packetScanTime += System.currentTimeMillis();
 			} catch (IllegalStateException ise) {
 				throw ise;
 			}
@@ -115,9 +105,7 @@ public class ProtocolInputStream {
 				}
 				int actual = 0;
 				try {
-					readTime -= System.currentTimeMillis();
 					actual = in.read(buffer, endMod, available);
-					readTime += System.currentTimeMillis();
 					
 					if(actual > 0 && packetId == -1) {
 						packetId = 0xFF & buffer[startMod];
@@ -125,13 +113,11 @@ public class ProtocolInputStream {
 
 					readSoFar += actual;
 					if(readSoFar < 100) {
-						sleepTime -= System.currentTimeMillis();
 						try {
 							Thread.sleep(10);
 						} catch (InterruptedException e) {
 							Thread.currentThread().interrupt();
 						}
-						sleepTime += System.currentTimeMillis();
 					}
 
 				} catch (SocketTimeoutException ste) {
