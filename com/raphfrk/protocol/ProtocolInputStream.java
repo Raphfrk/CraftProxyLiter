@@ -31,6 +31,7 @@ import com.raphfrk.craftproxyliter.Globals;
 
 public class ProtocolInputStream {
 
+	private final int SPARE_BYTES = 64;
 	private final InputStream in;
 
 	final private byte[] buffer;
@@ -103,7 +104,7 @@ public class ProtocolInputStream {
 				} else {
 					available = startMod - endMod;
 				}
-				available -= 64;
+				available -= SPARE_BYTES;
 				int actual = 0;
 				try {
 					actual = in.read(buffer, endMod, available);
@@ -128,7 +129,7 @@ public class ProtocolInputStream {
 					throw new EOFException();
 				} else {
 					length += actual;
-					if(length > buffer.length - 1) {
+					if(length > buffer.length - 1 - SPARE_BYTES) {
 						System.err.println("Buffer full and unable to parse packet");
 						System.out.println("Buffer full and unable to parse packet");
 						StringBuilder sb = new StringBuilder();
