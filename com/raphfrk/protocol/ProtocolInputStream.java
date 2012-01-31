@@ -104,7 +104,7 @@ public class ProtocolInputStream {
 				} else {
 					available = startMod - endMod;
 				}
-				available -= SPARE_BYTES;
+				available = Math.min(available, buffer.length - SPARE_BYTES - length);
 				int actual = 0;
 				try {
 					actual = in.read(buffer, endMod, available);
