@@ -132,7 +132,7 @@ public class ProtocolInputStream {
 					if(length > buffer.length - 1 - SPARE_BYTES) {
 						System.err.println("Buffer full and unable to parse packet");
 						System.out.println("Buffer full and unable to parse packet");
-						StringBuilder sb = new StringBuilder();
+						StringBuilder sb = new StringBuilder("Bytes: ");
 						boolean first = true;
 						for (int i = -32; i < 256; i++) {
 							if (!first) {
@@ -149,6 +149,7 @@ public class ProtocolInputStream {
 								sb.append("_");
 							}
 						}
+						System.out.println(sb.toString());
 						throw new IOException("Buffer full and unable to parse packet");
 					}
 				}
