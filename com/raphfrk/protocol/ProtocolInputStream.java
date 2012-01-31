@@ -103,6 +103,7 @@ public class ProtocolInputStream {
 				} else {
 					available = startMod - endMod;
 				}
+				available -= 64;
 				int actual = 0;
 				try {
 					actual = in.read(buffer, endMod, available);
