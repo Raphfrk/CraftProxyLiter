@@ -128,9 +128,26 @@ public class ProtocolInputStream {
 				} else {
 					length += actual;
 					if(length > buffer.length - 1) {
-						System.err.println("Buffer mis-calculation for length??");
-						System.out.println("Buffer mis-calculation for length??");
-						throw new IOException("Buffer mis-calculation for length??");
+						System.err.println("Buffer full and unable to parse packet");
+						System.out.println("Buffer full and unable to parse packet");
+						StringBuilder sb = new StringBuilder();
+						boolean first = true;
+						for (int i = -32; i < 256; i++) {
+							if (!first) {
+								sb.append(", ");
+							} else {
+								first = false;
+							}
+							int pos = (start + i) & bufferMask;
+							if (i == 0) {
+								sb.append("_");
+							}
+							sb.append(Integer.toHexString(buffer[pos] & 0xFF));
+							if (i == 0) {
+								sb.append("_");
+							}
+						}
+						throw new IOException("Buffer full and unable to parse packet");
 					}
 				}
 			}
