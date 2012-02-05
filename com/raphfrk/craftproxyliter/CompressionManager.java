@@ -45,8 +45,7 @@ public class CompressionManager {
 		this.fm = fm;
 		this.out = out;
 		this.t = t;
-		ct = new CompressionThread();
-		ct.setName("CompressionThread");
+		ct = new CompressionThread("CompressionThread", ptc, fm);
 		ct.start();
 	}
 
@@ -77,11 +76,15 @@ public class CompressionManager {
 
 	private class CompressionThread extends KillableThread {
 
-		Compressor c;
+		final Compressor c;
+		
+		public CompressionThread(String name, PassthroughConnection ptc, FairnessManager fm) {
+			setName(name);
+			c = new Compressor(ptc, fm, ptc.proxyListener.hs);
+		}
 
 		public void run() {
 
-			c = new Compressor(ptc, fm, ptc.proxyListener.hs);
 			AtomicBoolean compressing = ptc.connectionInfo.cacheInUse;
 
 			while((!queue.isEmpty()) || (!killed())) {
