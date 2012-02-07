@@ -227,7 +227,11 @@ public class Compressor {
 				current.blockNum = cnt;
 				current.buffer = decompressed;
 				current.wipeBuffer = true;
-				hashResults.set(cnt, pool.submit(current));
+				try {
+					hashResults.set(cnt, pool.submit(current));
+				} catch (RejectedExecutionException ree) {
+					return packet;
+				}
 			} else {
 				//System.out.println(" - Miss");
 				hashResults.set(cnt, null);
