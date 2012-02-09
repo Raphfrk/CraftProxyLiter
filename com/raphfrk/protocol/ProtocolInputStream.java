@@ -130,6 +130,9 @@ public class ProtocolInputStream {
 				} else {
 					length += actual;
 					if(length > buffer.length - 1 - SPARE_BYTES) {
+						Packet temp = PacketScan.packetScan(buffer, start, length - actual, bufferMask, packet, true);
+						System.err.println("Return packet: " + temp);
+						System.out.println("Return packet: " + temp);
 						System.err.println("Buffer full and unable to parse packet");
 						System.out.println("Buffer full and unable to parse packet");
 						StringBuilder sb = new StringBuilder("Bytes: ");

@@ -25,9 +25,22 @@ package com.raphfrk.protocol;
 public class PacketScan {
 	
 	public static final int maxPacketSize = 90*1024;
-
+	
 	static final Packet packetScan(byte[] buffer, int start, int dataLength, int mask, Packet packet) {
+		return packetScan(buffer, start, dataLength, mask, packet, false);
+	}
 
+	static final Packet packetScan(byte[] buffer, int start, int dataLength, int mask, Packet packet, boolean debug) {
+
+		if (debug) {
+			System.out.println("Start scan");
+			System.err.println("Start scan");
+			System.out.println("Start " + start);
+			System.err.println("Start " + start);
+			System.out.println("dataLength " + dataLength);
+			System.err.println("dataLength " + dataLength);
+		}
+		
 		if(dataLength == 0) {
 			return null;
 		}
@@ -42,6 +55,8 @@ public class PacketScan {
 		packet.mask = mask;
 		
 		if(mask == 0) {
+			System.out.println("Returning null as mask is null");
+			System.err.println("Returning null as mask is null");
 			return null;
 		}
 		
@@ -74,12 +89,24 @@ public class PacketScan {
 				System.err.println(packet + sb.toString());
 				throw new IllegalStateException("Unknown packet id + " + Integer.toHexString(packetId));
 			}
+			if (debug) {
+				System.out.println("zero length packet");
+				System.err.println("zero length packet");
+			}
 			return null;
 		}
 
 		int opsLength = ops.length;
 
 		for(int cnt=0; cnt<opsLength; cnt++) {
+			if (debug) {
+				if (debug) {
+					System.out.println("Op code: " + ops[cnt]);
+					System.err.println("Op code: " + ops[cnt]);
+					System.out.println("Param: " + params[cnt]);
+					System.err.println("Param: " + params[cnt]);
+				}
+			}
 			switch(ops[cnt]) {
 			case JUMP_FIXED: {
 				position = (position + params[cnt]);
@@ -87,6 +114,10 @@ public class PacketScan {
 			}
 			case BYTE_SIZED: {
 				int size = getByte(buffer, position, mask) & 0xFF;
+				if (debug) {
+					System.out.println("Size: " + size);
+					System.err.println("Size: " + size);
+				}
 				position = (position + 1);
 				if(size > maxPacketSize) {
 					if(position - start <= dataLength) {
@@ -103,6 +134,10 @@ public class PacketScan {
 			}
 			case SHORT_SIZED: {
 				short size = getShort(buffer, position, mask);
+				if (debug) {
+					System.out.println("Size: " + size);
+					System.err.println("Size: " + size);
+				}
 				position = (position + 2);
 				if(size > maxPacketSize) {
 					if(position - start <= dataLength) {
@@ -119,6 +154,10 @@ public class PacketScan {
 			}
 			case SHORT_SIZED_DOUBLED: {
 				short size = (short)(getShort(buffer, position, mask)<<1);
+				if (debug) {
+					System.out.println("Size: " + size);
+					System.err.println("Size: " + size);
+				}
 				position = (position + 2);
 				if(size > maxPacketSize) {
 					if(position - start <= dataLength) {
@@ -135,6 +174,10 @@ public class PacketScan {
 			}
 			case SHORT_SIZED_QUAD: {
 				short size = (short)(getShort(buffer, position, mask)<<2);
+				if (debug) {
+					System.out.println("Size: " + size);
+					System.err.println("Size: " + size);
+				}
 				position = (position + 2);
 				if(size > maxPacketSize) {
 					if(position - start <= dataLength) {
@@ -151,6 +194,10 @@ public class PacketScan {
 			}
 			case INT_SIZED: {
 				int size = getInt(buffer, position, mask);
+				if (debug) {
+					System.out.println("Size: " + size);
+					System.err.println("Size: " + size);
+				}
 				if(packetId == 0x50) {
 					System.out.println("Size: " + size);
 					System.err.println("Size: " + size);
@@ -171,6 +218,10 @@ public class PacketScan {
 			}
 			case INT_SIZED_TRIPLE: {
 				int size = getInt(buffer, position, mask)*3;
+				if (debug) {
+					System.out.println("Size: " + size);
+					System.err.println("Size: " + size);
+				}
 				position = (position + 4);
 				if(size > maxPacketSize) {
 					if(position - start <= dataLength) {
@@ -187,6 +238,10 @@ public class PacketScan {
 			}
 			case INT_SIZED_QUAD: {
 				int size = getInt(buffer, position, mask)<<2;
+				if (debug) {
+					System.out.println("Size: " + size);
+					System.err.println("Size: " + size);
+				}
 				position = (position + 4);
 				if(size > maxPacketSize) {
 					if(position - start <= dataLength) {
@@ -203,6 +258,10 @@ public class PacketScan {
 			}
 			case INT_SIZED_INT_SIZED_SINGLE: {
 				int size1 = getInt(buffer, position, mask)<<2;
+				if (debug) {
+					System.out.println("Size1: " + size1);
+					System.err.println("Size1: " + size1);
+				}
 				if (size1 < 0) {
 					return null;
 				}
@@ -227,6 +286,10 @@ public class PacketScan {
 					return null;
 					}
 					int size2 = getInt(buffer, position, mask);
+					if (debug) {
+						System.out.println("Size2: " + size2);
+						System.err.println("Size2: " + size2);
+					}
 					if (size2 < 0) {
 						return null;
 					}
@@ -293,6 +356,10 @@ public class PacketScan {
 			}
 			case OPTIONAL_MOTION: {
 				int optional = getInt(buffer, position, mask);
+				if (debug) {
+					System.out.println("optional: " + optional);
+					System.err.println("optional: " + optional);
+				}
 				position = (position + 4);
 				if(optional > 0) {
 					position = position + 6;
@@ -305,6 +372,10 @@ public class PacketScan {
 			}
 			case ITEM_ARRAY: {
 				short count = getShort(buffer, position, mask);
+				if (debug) {
+					System.out.println("count: " + count);
+					System.err.println("count: " + count);
+				}
 				position = (position + 2);
 				if(count > (maxPacketSize >> 3)) {
 					if(position - start <= dataLength) {
@@ -326,6 +397,18 @@ public class PacketScan {
 				return null;
 			}
 			}
+		}
+		
+		if (debug) {
+			System.out.println("position: " + position);
+			System.err.println("position: " + position);
+			System.out.println("Start: " + start);
+			System.err.println("Start: " + start);
+			System.out.println("dataLength: " + dataLength);
+			System.err.println("dataLength: " + dataLength);	
+			System.out.println("maxPacketSize: " + maxPacketSize);
+			System.err.println("maxPacketSize: " + maxPacketSize);
+			
 		}
 		
 		if(position - start > maxPacketSize) {
