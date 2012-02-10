@@ -105,12 +105,18 @@ public class ProtocolInputStream {
 					available = startMod - endMod;
 				}
 				available = Math.min(available, buffer.length - SPARE_BYTES - length);
+				if (available > 1) {
+					available--;
+				}
 				int actual = 0;
 				try {
 					actual = in.read(buffer, endMod, available);
 					
 					if(actual > 0 && packetId == -1) {
 						packetId = 0xFF & buffer[startMod];
+					}
+					if (actual > 0) {
+						length += actual;
 					}
 
 					readSoFar += actual;
@@ -128,9 +134,10 @@ public class ProtocolInputStream {
 				if(actual == -1) {
 					throw new EOFException();
 				} else {
-					length += actual;
 					if(length > buffer.length - 1 - SPARE_BYTES) {
 						Packet temp = PacketScan.packetScan(buffer, start, length - actual, bufferMask, packet, true);
+						System.err.println("Length of last read: " + length);
+						System.out.println("Length of last read: " + length);
 						System.err.println("Return packet: " + temp);
 						System.out.println("Return packet: " + temp);
 						System.err.println("Buffer full and unable to parse packet");
