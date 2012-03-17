@@ -37,4 +37,10 @@ public class Packet02Handshake extends Packet{
 		return getString16(1);
 	}
 	
+	public String getUsernameSplit() {
+		String raw = getString16(1);
+		String[] split = raw.split(";");
+		return split[0];
+	}
+	
 }

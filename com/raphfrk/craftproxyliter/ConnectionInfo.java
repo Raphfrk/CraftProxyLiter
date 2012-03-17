@@ -64,6 +64,7 @@ public class ConnectionInfo {
 	public String levelType = "DEFAULT";
 	
 	private String username;
+	private String usernameRaw;
 	
 	public String toString() {
 		return "clientplayerId=" + clientPlayerId + ", serverPlayerId=" + serverPlayerId + ", holding=" + holding + ", cacheInUse=" + 
@@ -76,8 +77,17 @@ public class ConnectionInfo {
 		this.username = username;
 	}
 
+	
+	public void setUsernameRaw(String usernameRaw) {
+		this.usernameRaw = usernameRaw;
+	}
+	
 	public String getUsername() {
 		return username;
+	}
+	
+	public String getUsernameRaw() {
+		return usernameRaw;
 	}
 	
 	String IP;

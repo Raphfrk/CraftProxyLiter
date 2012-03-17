@@ -51,5 +51,11 @@ public class Packet52ProxyLogin extends Packet {
 		int hostnameLength = getShort(3 + codeLength*2);
 		return getString16(5 + codeLength*2 + hostnameLength*2);
 	}
+	
+	public String getUsernameSplit() {
+		String raw = getUsername();
+		String[] split = raw.split(";");
+		return split[0];
+	}
 
 }

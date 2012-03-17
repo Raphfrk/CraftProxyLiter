@@ -216,6 +216,32 @@ public class PacketScan {
 				}
 				break;
 			}
+			case INT_SIZED_DUMMY: {
+				int size = getInt(buffer, position, mask);
+				if (debug) {
+					System.out.println("Size: " + size);
+					System.err.println("Size: " + size);
+				}
+				if(packetId == 0x50) {
+					System.out.println("Size: " + size);
+					System.err.println("Size: " + size);
+				}
+				position = (position + 4);
+				int dummy = getInt(buffer, position, mask);
+				position = (position + 4);
+				if(size > maxPacketSize) {
+					if(position - start <= dataLength) {
+						System.err.println("Size to large in int sized byte array");
+						System.out.println("Size to large in int sized byte array");
+					}
+					return null;
+				}
+				position = (position + size);
+				if(size < 0) {
+					return null;
+				}
+				break;
+			}
 			case INT_SIZED_TRIPLE: {
 				int size = getInt(buffer, position, mask)*3;
 				if (debug) {

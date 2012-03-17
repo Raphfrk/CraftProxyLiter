@@ -169,11 +169,11 @@ public class Compressor {
 
 		Packet newPacket = packet.clone(fm);
 		byte[] buffer = newPacket.buffer;
-		int start = 18;
+		int start = 22; // new int added
 		int length = packet.getInt(14);
 		
 		if(length > 131072) {
-			return null;
+			return packet;
 		}
 
 		i.reset();
@@ -187,6 +187,7 @@ public class Compressor {
 			return packet;
 		}
 
+		System.out.println("Expanded length: " + expandedLength);
 		if(expandedLength != (81920)) {
 			return packet;
 		}

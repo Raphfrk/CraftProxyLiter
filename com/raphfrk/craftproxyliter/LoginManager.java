@@ -58,10 +58,12 @@ public class LoginManager {
 
 		if(packet.getByte(0) == 0x02) {
 			Packet02Handshake CtSHandshake = new Packet02Handshake(packet);
-			info.setUsername(CtSHandshake.getUsername());
+			info.setUsername(CtSHandshake.getUsernameSplit());
+			info.setUsernameRaw(CtSHandshake.getUsername());
 		} else if (packet.getByte(0) == 0x52){
 			Packet52ProxyLogin proxyLogin = new Packet52ProxyLogin(packet);
-			info.setUsername(proxyLogin.getUsername());
+			info.setUsername(proxyLogin.getUsernameSplit());
+			info.setUsernameRaw(proxyLogin.getUsername());
 			info.setHostname(proxyLogin.getHostname());
 			info.forwardConnection = true;
 			ptc.printLogMessage("Proxy to proxy connection received, forwarding to " + ptc.connectionInfo.getHostname());
@@ -138,10 +140,10 @@ public class LoginManager {
 				ptc.printLogMessage("WARNING: attempting to log into another proxy which has authentication enabled but password has not been set");
 			}
 			ptc.printLogMessage("Connecting using proxy to server connection format");
-			CtSHandshake = new Packet02Handshake(info.getUsername());
+			CtSHandshake = new Packet02Handshake(info.getUsernameRaw());
 		} else {
 			ptc.printLogMessage("Connecting using proxy to proxy connection format");
-			CtSHandshake = new Packet52ProxyLogin("", fullHostname, info.getUsername());
+			CtSHandshake = new Packet52ProxyLogin("", fullHostname, info.getUsernameRaw());
 		}
 
 		try {
@@ -174,7 +176,7 @@ public class LoginManager {
 				ptc.printLogMessage("WARNING: attempting to log into another proxy which has authentication enabled but password has not been set");
 			} else {
 				String confirmCode = sha1Hash(password + hash);
-				Packet code = new Packet52ProxyLogin(confirmCode, info.getHostname(), info.getUsername());
+				Packet code = new Packet52ProxyLogin(confirmCode, info.getHostname(), info.getUsernameRaw());
 				System.out.println("Sent 0x52 packet");
 				try {
 					if(serverSocket.pout.sendPacket(code) == null) {
@@ -252,7 +254,7 @@ public class LoginManager {
 			packet = new Packet(200);
 			packet.writeByte((byte)0x01);
 			packet.writeInt(info.clientVersion);
-			packet.writeString16(username.substring(0,Math.min(16, username.length())));
+			packet.writeString16(username.substring(0,Math.min(128, username.length())));
 			packet.writeLong(0);
 			packet.writeString16("");
 			packet.writeInt(0);
