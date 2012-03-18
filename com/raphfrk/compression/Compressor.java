@@ -88,7 +88,7 @@ public class Compressor {
 		int length = packet.getInt(14);
 		Packet newPacket = packet.clone(fm);
 		byte[] buffer = newPacket.buffer;
-		int start = 18;
+		int start = 22;
 		
 		if(length > 131072) {
 			return null;
@@ -134,18 +134,18 @@ public class Compressor {
 		int newSize = d.deflate(compressed);
 
 		Packet outPacket = new Packet();
-		outPacket.buffer = new byte[newSize + 18];
+		outPacket.buffer = new byte[newSize + 30];
 
 		outPacket.writeByte((byte)0x33);
 		outPacket.writeInt(packet.getInt(1));
-		outPacket.writeShort(packet.getShort(5));
-		outPacket.writeInt(packet.getInt(7));
-		outPacket.writeByte(packet.getByte(11));
-		outPacket.writeByte(packet.getByte(12));
-		outPacket.writeByte(packet.getByte(13));
+		outPacket.writeInt(packet.getInt(5));
+		outPacket.writeByte(packet.getByte(9));
+		outPacket.writeShort(packet.getShort(10));
+		outPacket.writeShort(packet.getShort(12));
 		outPacket.writeInt(newSize);
+		outPacket.writeInt(packet.getByte(18));
 		
-		System.arraycopy(compressed, 0, outPacket.buffer, 18, newSize);
+		System.arraycopy(compressed, 0, outPacket.buffer, 22, newSize);
 		outPacket.end+=newSize;
 		ptc.connectionInfo.saved.addAndGet(newSize - length);
 		
@@ -187,7 +187,6 @@ public class Compressor {
 			return packet;
 		}
 
-		System.out.println("Expanded length: " + expandedLength);
 		if(expandedLength != (81920)) {
 			return packet;
 		}
@@ -269,18 +268,18 @@ public class Compressor {
 		int newSize = d.deflate(compressed);
 		
 		Packet outPacket = new Packet();
-		outPacket.buffer = new byte[newSize + 18];
+		outPacket.buffer = new byte[newSize + 30];
 
 		outPacket.writeByte((byte)0x51);
 		outPacket.writeInt(packet.getInt(1));
-		outPacket.writeShort(packet.getShort(5));
-		outPacket.writeInt(packet.getInt(7));
-		outPacket.writeByte(packet.getByte(11));
-		outPacket.writeByte(packet.getByte(12));
-		outPacket.writeByte(packet.getByte(13));
+		outPacket.writeInt(packet.getInt(5));
+		outPacket.writeByte(packet.getByte(9));
+		outPacket.writeShort(packet.getShort(10));
+		outPacket.writeShort(packet.getShort(12));
 		outPacket.writeInt(newSize);
+		outPacket.writeInt(packet.getInt(18));
 		
-		System.arraycopy(compressed, 0, outPacket.buffer, 18, newSize);
+		System.arraycopy(compressed, 0, outPacket.buffer, 22, newSize);
 		outPacket.end+=newSize;
 		
 		//System.out.println("Saved: (" + length + " -> " + newSize + ") " + (length - newSize));
