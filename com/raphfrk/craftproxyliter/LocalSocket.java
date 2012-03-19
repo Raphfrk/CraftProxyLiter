@@ -155,7 +155,7 @@ public class LocalSocket {
 		return true;
 	}
 
-	LocalSocket(Socket socket, PassthroughConnection ptc) {
+	LocalSocket(Socket socket, PassthroughConnection ptc, int worldHeight) {
 		this.ptc = ptc;
 		this.socket = socket;
 		DataInputStream inLocal = null;
@@ -200,7 +200,7 @@ public class LocalSocket {
 			return;
 		}
 		in = inLocal;
-		pin = new ProtocolInputStream(in, 90*1024);
+		pin = new ProtocolInputStream(in, worldHeight*1024);
 		out = outLocal;
 		pout = new ProtocolOutputStream(out);
 		success = true;

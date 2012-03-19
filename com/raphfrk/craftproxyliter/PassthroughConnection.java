@@ -62,7 +62,7 @@ public class PassthroughConnection extends KillableThread {
 	public void run() {
 
 		// Open Packet Streams
-		LocalSocket clientLocalSocket = new LocalSocket(clientSocket, this);
+		LocalSocket clientLocalSocket = new LocalSocket(clientSocket, this, Globals.getMaxWorldHeight());
 
 		if(!clientLocalSocket.success) {
 			printLogMessage("Unable to open data streams for client socket");
@@ -136,7 +136,7 @@ public class PassthroughConnection extends KillableThread {
 				return;
 			}
 
-			LocalSocket serverLocalSocket = new LocalSocket(serverSocket, this);
+			LocalSocket serverLocalSocket = new LocalSocket(serverSocket, this, Globals.getMaxWorldHeight());
 
 			if(!serverLocalSocket.success) {
 				printLogMessage("Unable to open server socket data streams");

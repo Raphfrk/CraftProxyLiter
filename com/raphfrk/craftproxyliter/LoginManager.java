@@ -93,7 +93,7 @@ public class LoginManager {
 				LocalSocket serverLocalSocket;
 				try {
 					serverSocket.setSoTimeout(1000);
-					serverLocalSocket = new LocalSocket(serverSocket, ptc);
+					serverLocalSocket = new LocalSocket(serverSocket, ptc, Globals.getMaxWorldHeight());
 				} catch (IOException ioe) {
 					return "Unable to connect";
 				}
