@@ -154,7 +154,7 @@ public class Packet {
 		buffer[(end++) & mask] = (byte)(i >> 8);
 		buffer[(end++) & mask] = (byte)(i >> 0);
 	}	
-
+	
 	public void writeString16(String s) {
 		int length = s.length();
 		writeShort((short)length);

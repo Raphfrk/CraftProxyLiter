@@ -80,7 +80,7 @@ public class CompressionManager {
 		
 		public CompressionThread(String name, PassthroughConnection ptc, FairnessManager fm) {
 			setName(name);
-			c = new Compressor(ptc, fm, ptc.proxyListener.hs);
+			c = new Compressor(ptc, fm, ptc.proxyListener.hs, Globals.getMaxWorldHeight());
 		}
 
 		public void run() {

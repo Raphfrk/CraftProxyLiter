@@ -358,5 +358,15 @@ public class Globals {
 	static public void setLogTime(boolean logTime) {
 		Globals.logTime = logTime;
 	}
+	
+	
+	private static int maxHeight = 256;
+	static public int getMaxWorldHeight() {
+		return maxHeight;
+	}
+	
+	static public void setMaxWorldHeight(int maxHeight) {
+		Globals.maxHeight = maxHeight;
+	}
 
 }

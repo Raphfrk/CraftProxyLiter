@@ -45,17 +45,27 @@ public class Compressor {
 	final FairnessManager fm;
 	final ConcurrentHashMap<Long,Boolean> hashesReceived;
 	final ConcurrentHashMap<Long,Boolean> hashesSent;
-	final byte[] compressed = new byte[1024*128];
-	final byte[] decompressed = new byte[1024*128];
-	final long[] packetHashes = new long[40];
-	final int dataSize = 80*1024;
+	final byte[] compressed;
+	final byte[] decompressed;
+	final long[] packetHashes;
 	final ExecutorService pool = Executors.newFixedThreadPool(4);
+	final int maxStripes;
+	final int bufferLength;
 	final ArrayList<Future<Long>> hashResults = new ArrayList<Future<Long>>(40);
 	final ArrayList<HashGenerator> hashGenerators;
 	final HashStore hs;
 
-	public Compressor(PassthroughConnection ptc, FairnessManager fm, HashStore hs) {
+	public Compressor(PassthroughConnection ptc, FairnessManager fm, HashStore hs, int maxHeight) {
 
+		bufferLength = maxHeight << 10;
+		
+		compressed = new byte[bufferLength];
+		decompressed = new byte[bufferLength];
+		
+		maxStripes = maxHeight >> 1;
+		
+		packetHashes = new long[maxStripes];
+		
 		this.d = new Deflater(Globals.getCompressionLevel());
 		this.i = new Inflater();
 		this.fm = fm;
@@ -63,9 +73,9 @@ public class Compressor {
 		this.hashesReceived = ptc.connectionInfo.hashesReceived;
 		this.hashesSent = ptc.connectionInfo.hashesSent;
 		
-		hashGenerators = new ArrayList<HashGenerator>(40);
+		hashGenerators = new ArrayList<HashGenerator>(maxStripes);
 		
-		for(int cnt=0;cnt<40;cnt++) {
+		for(int cnt=0;cnt<maxStripes;cnt++) {
 			hashGenerators.add(new HashGenerator());
 			hashResults.add(null);
 		}
@@ -84,15 +94,22 @@ public class Compressor {
 	}
 	
 	public Packet decompress(Packet packet, PassthroughConnection ptc) {
+
+		int stripes = packet.getInt(14) >> 1;
 		
-		int length = packet.getInt(14);
+		int length = packet.getInt(18 + (stripes << 3));
 		Packet newPacket = packet.clone(fm);
 		byte[] buffer = newPacket.buffer;
-		int start = 22;
 		
-		if(length > 131072) {
+		if(length > bufferLength - 50) {
 			return null;
 		}
+		
+		for(int cnt = 0; cnt < stripes; cnt++) {
+			packetHashes[cnt] = packet.getLong(18 + (cnt << 3));
+		}
+	
+		int start = 26 + (stripes << 3);
 		
 		i.reset();
 		i.setInput(buffer, start, length);
@@ -106,14 +123,8 @@ public class Compressor {
 			return null;
 		}
 		
-		if(expandedLength != 81920 + 320) {
-			ptc.printLogMessage("Wrong length");
-			return null;
-		}
 		
-		HashManager.extractHashesList(decompressed, packetHashes);
-		
-		for(int cnt=0;cnt<40;cnt++) {
+		for(int cnt=0;cnt<stripes;cnt++) {
 			
 			//System.out.println("Header hash: 0x" + Long.toHexString(packetHashes[cnt]));
 			
@@ -128,7 +139,7 @@ public class Compressor {
 		}
 		
 		d.reset();
-		d.setInput(decompressed, 0, expandedLength - 320);
+		d.setInput(decompressed, 0, expandedLength);
 		d.finish();
 		
 		int newSize = d.deflate(compressed);
@@ -143,11 +154,11 @@ public class Compressor {
 		outPacket.writeShort(packet.getShort(10));
 		outPacket.writeShort(packet.getShort(12));
 		outPacket.writeInt(newSize);
-		outPacket.writeInt(packet.getByte(18));
+		outPacket.writeInt(packet.getByte(22 + (stripes << 3)));
 		
 		System.arraycopy(compressed, 0, outPacket.buffer, 22, newSize);
 		outPacket.end+=newSize;
-		ptc.connectionInfo.saved.addAndGet(newSize - length);
+		ptc.connectionInfo.saved.addAndGet(newSize - length - (stripes << 3) - 4);
 		
 		int percent = (int)(((100.0)*ptc.connectionInfo.saved.get())/ptc.connectionInfo.uploaded.get());
 		if(Main.craftGUI != null) {
@@ -172,7 +183,7 @@ public class Compressor {
 		int start = 22; // new int added
 		int length = packet.getInt(14);
 		
-		if(length > 131072) {
+		if(length > bufferLength) {
 			return packet;
 		}
 
@@ -187,11 +198,17 @@ public class Compressor {
 			return packet;
 		}
 
-		if(expandedLength != (81920)) {
+		if(expandedLength < 16384) {
 			return packet;
 		}
 
-		for(int cnt=0;cnt<40;cnt++) {
+		for (int p = expandedLength; p < bufferLength && p < expandedLength + 2048; p++) {
+			decompressed[p] = 0;
+		}
+		
+		int stripes = (expandedLength + 2047) >> 11;
+		
+		for(int cnt=0;cnt<stripes;cnt++) {
 			HashGenerator current = hashGenerators.get(cnt);
 			current.blockNum = cnt;
 			current.buffer = decompressed;
@@ -203,7 +220,7 @@ public class Compressor {
 			}
 		}
 
-		for(int cnt=0;cnt<40;cnt++) {
+		for(int cnt=0;cnt<stripes;cnt++) {
 			Future<Long> result = hashResults.get(cnt);
 			try {
 				packetHashes[cnt] = result.get();
@@ -218,7 +235,7 @@ public class Compressor {
 		
 		int hit = 0;
 
-		for(int cnt=0;cnt<40;cnt++) {
+		for(int cnt=0;cnt<stripes;cnt++) {
 			//System.out.print("Checking for hash: 0x" + Long.toHexString(packetHashes[cnt]));
 			if(hashesReceived.containsKey(packetHashes[cnt])) {
 				//System.out.println(" - Hit");
@@ -238,13 +255,13 @@ public class Compressor {
 			}
 		}
 		
-		for(int cnt=0;cnt<40;cnt++) {
+		for(int cnt=0;cnt<stripes;cnt++) {
 			hashesReceived.put(packetHashes[cnt], true);
 		}
 		
 		//System.out.println("Hit: " + hit + "-" + (40-hit));
 
-		for(int cnt=0;cnt<40;cnt++) {
+		for(int cnt=0;cnt<stripes;cnt++) {
 			Future<Long> result = hashResults.get(cnt);
 			if(result != null) {
 				try {
@@ -259,16 +276,14 @@ public class Compressor {
 			}
 		}
 		
-		HashManager.setHashesList(decompressed, packetHashes);
-		
 		d.reset();
-		d.setInput(decompressed, 0, expandedLength + 320);
+		d.setInput(decompressed, 0, expandedLength);
 		d.finish();
 		
 		int newSize = d.deflate(compressed);
 		
 		Packet outPacket = new Packet();
-		outPacket.buffer = new byte[newSize + 30];
+		outPacket.buffer = new byte[newSize + 50 + stripes * 8];
 
 		outPacket.writeByte((byte)0x51);
 		outPacket.writeInt(packet.getInt(1));
@@ -276,10 +291,16 @@ public class Compressor {
 		outPacket.writeByte(packet.getByte(9));
 		outPacket.writeShort(packet.getShort(10));
 		outPacket.writeShort(packet.getShort(12));
+		
+		outPacket.writeInt(stripes * 2); // since it counts in ints
+		for(int cnt = 0; cnt < stripes; cnt++) {
+			outPacket.writeLong(packetHashes[cnt]);
+		}
+		
 		outPacket.writeInt(newSize);
 		outPacket.writeInt(packet.getInt(18));
 		
-		System.arraycopy(compressed, 0, outPacket.buffer, 22, newSize);
+		System.arraycopy(compressed, 0, outPacket.buffer, outPacket.end, newSize);
 		outPacket.end+=newSize;
 		
 		//System.out.println("Saved: (" + length + " -> " + newSize + ") " + (length - newSize));
