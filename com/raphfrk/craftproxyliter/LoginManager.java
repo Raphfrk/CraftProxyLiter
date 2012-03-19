@@ -177,7 +177,7 @@ public class LoginManager {
 			} else {
 				String confirmCode = sha1Hash(password + hash);
 				Packet code = new Packet52ProxyLogin(confirmCode, info.getHostname(), info.getUsernameRaw());
-				System.out.println("Sent 0x52 packet");
+				ptc.printLogMessage("Sent 0x52 packet");
 				try {
 					if(serverSocket.pout.sendPacket(code) == null) {
 						return "Server refused password packet";
@@ -214,12 +214,14 @@ public class LoginManager {
 				packet = clientSocket.pin.getPacket(packet, 10000);
 				if (packet == null) {
 					return "Malformed Login packet, server/client version mismatch?";
-				} else if (packet.getByte(0) != 1) {
+				} else if (packet.getByte(0) != 1 && packet.getByte(0) != 0x52) {
 					return "Client didn't send login packet";
 				}
-				packet = new Packet01Login(packet);
-				info.clientVersion = packet.getInt(1);
-				info.craftProxyLogin = ((Packet01Login)packet).getSeed() == MAGIC_SEED;
+				if (packet.getByte(0) == 1) {
+					packet = new Packet01Login(packet);
+					info.clientVersion = packet.getInt(1);
+					info.craftProxyLogin = ((Packet01Login)packet).getSeed() == MAGIC_SEED;
+				}
 				//((Packet01Login)packet).setSeed(MAGIC_SEED);
 			} catch (EOFException eof) {
 				return "Client closed connection before sending login";
@@ -230,6 +232,7 @@ public class LoginManager {
 			if(packet.getByte(0) == 0x52) {
 				Packet52ProxyLogin proxyLogin = new Packet52ProxyLogin(packet);
 				if(proxyLogin.getCode().equals(expectedCode)) {
+					ptc.printLogMessage("Password accepted");
 					passwordAccepted = true;
 					try {
 						packet = clientSocket.pin.getPacket(packet);
