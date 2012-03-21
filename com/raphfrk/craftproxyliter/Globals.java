@@ -82,6 +82,16 @@ public class Globals {
 		flood = newFlood;
 	}
 	
+	static private boolean showUnallocatedChunkWarning = false;
+	
+	public synchronized static boolean showUnallocatedChunkWarning() {
+		return showUnallocatedChunkWarning;
+	}
+	
+	public synchronized static void setShowUnallocatedChunkWarning( boolean newShowUnallocatedChunkWarning ) {
+		showUnallocatedChunkWarning = newShowUnallocatedChunkWarning;
+	}
+	
 	static private boolean quiet = false;
 
 	public synchronized static boolean isQuiet() {

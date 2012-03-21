@@ -85,6 +85,7 @@ public class Main {
 			Logging.log("    cache_limit           Sets the max size of the cache");
 			Logging.log("    quiet:                Reduces logging");
 			Logging.log("    disable_flood:        Disables flood protection");
+			Logging.log("    show_unallocated_warn:Shows a warning when chunks for unallocated columns are sent to the client");
 			Logging.log("    info:                 Gives more information");
 			Logging.log("    debug:                Gives debug info");
 			Logging.log("    bufferlatency:        Sets buffers max latency");
@@ -115,6 +116,7 @@ public class Main {
 					else if( args[pos].equals("password"))     { Globals.setPassword(args[pos+1]); pos++;}
 					else if( args[pos].equals("adminname"))     { Globals.setAdminName(args[pos+1]); pos++;}
 					else if( args[pos].equals("command"))     { Globals.setCommand(args[pos+1]); pos++;}
+					else if( args[pos].equals("show_unallocated_warn")) Globals.setShowUnallocatedChunkWarning(true);
 					else if( args[pos].equals("quiet"))          Globals.setQuiet(true);
 					else if( args[pos].equals("disable_flood")) Globals.setFlood(false);
 					else if( args[pos].equals("cache_limit"))   { Globals.setCacheLimit(Integer.parseInt(args[pos+1])); pos++;}

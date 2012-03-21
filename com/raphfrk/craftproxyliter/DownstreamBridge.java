@@ -126,7 +126,9 @@ public class DownstreamBridge extends KillableThread {
 					int x = (packet.getInt(1) >> 4);
 					int z = (packet.getInt(5) >> 4);
 					if(!ptc.connectionInfo.containsChunk(x, z)) {
-						ptc.printLogMessage("Chunk update packet 0x" + Integer.toHexString(packetId) + " sent for unallocated chunk " + x + ", " + z + " adding fake init packet");
+						if (Globals.showUnallocatedChunkWarning()) {
+							ptc.printLogMessage("Chunk update packet 0x" + Integer.toHexString(packetId) + " sent for unallocated chunk " + x + ", " + z + " adding fake init packet");
+						}
 						Packet fakeInit = new Packet32PreChunk(x, z, true);
 						ptc.connectionInfo.addChunk(x, z);
 						cm.addToQueue(fakeInit);
