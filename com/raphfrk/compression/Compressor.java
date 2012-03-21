@@ -123,6 +123,9 @@ public class Compressor {
 			return null;
 		}
 		
+		if (expandedLength >= decompressed.length) {
+			return packet;
+		}
 		
 		for(int cnt=0;cnt<stripes;cnt++) {
 			
@@ -154,7 +157,7 @@ public class Compressor {
 		outPacket.writeShort(packet.getShort(10));
 		outPacket.writeShort(packet.getShort(12));
 		outPacket.writeInt(newSize);
-		outPacket.writeInt(packet.getByte(22 + (stripes << 3)));
+		outPacket.writeInt(packet.getInt(22 + (stripes << 3)));
 		
 		System.arraycopy(compressed, 0, outPacket.buffer, 22, newSize);
 		outPacket.end+=newSize;
@@ -197,8 +200,8 @@ public class Compressor {
 		} catch (DataFormatException dfe) {
 			return packet;
 		}
-
-		if(expandedLength < 16384) {
+		
+		if (expandedLength >= decompressed.length || expandedLength < 16384) {
 			return packet;
 		}
 
@@ -292,7 +295,7 @@ public class Compressor {
 		outPacket.writeShort(packet.getShort(10));
 		outPacket.writeShort(packet.getShort(12));
 		
-		outPacket.writeInt(stripes * 2); // since it counts in ints
+		outPacket.writeInt(stripes << 1); // since it counts in ints
 		for(int cnt = 0; cnt < stripes; cnt++) {
 			outPacket.writeLong(packetHashes[cnt]);
 		}
