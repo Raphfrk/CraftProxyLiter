@@ -163,7 +163,7 @@ public class ProtocolUnitArray {
 		opPairs[0x2B] = new OpPair[] {jump(9)};
 		opPairs[0x32] = new OpPair[] {jump(10)};
 		opPairs[0x33] = new OpPair[] {jump(14), intSizedDummy};
-		opPairs[0x34] = new OpPair[] {jump(11), shortSizedQuad};
+		opPairs[0x34] = new OpPair[] {jump(11), intSized};
 		opPairs[0x35] = new OpPair[] {jump(12)};
 		opPairs[0x36] = new OpPair[] {jump(13)};
 		opPairs[0x3C] = new OpPair[] {jump(29), intSizedTriple};
