@@ -184,6 +184,7 @@ public class ProtocolUnitArray {
 		opPairs[0x84] = new OpPair[] {jump(24)};
 		opPairs[0xC8] = new OpPair[] {jump(6)};	
 		opPairs[0xC9] = new OpPair[] {jump(1), string16, jump(3)};	
+		opPairs[0xCA] = new OpPair[] {jump(5)};
 		opPairs[0xFA] = new OpPair[] {string16, shortSized};
 		opPairs[0xFE] = new OpPair[] {jump(1)};	
 		opPairs[0xFF] = new OpPair[] {jump(1), string16};
