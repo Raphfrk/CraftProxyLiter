@@ -91,6 +91,7 @@ public class Main {
 			Logging.log("    bufferlatency:        Sets buffers max latency");
 			Logging.log("    timeout:              Sets the network timeout in seconds (default is 60 seconds)");
 			Logging.log("    log_time_off:         Turns off time for logging");
+			Logging.log("    hostname_map:         Sets a file which contains a hostname map");
 			Logging.log("    max_height <height>:  Sizes internal buffers for a given max world height");
 
 			if(consoleInput) {
@@ -135,6 +136,7 @@ public class Main {
 					else if( args[pos].equals("timeout"))       { Globals.setNetTimeout(Integer.parseInt(args[pos+1])); pos++;}
 					else if( args[pos].equals("max_height"))       { Globals.setMaxWorldHeight(Integer.parseInt(args[pos+1])); pos++;}
 					else if( args[pos].equals("log"))              { Logging.setFilename(args[pos+1]) ; pos++;}
+					else if( args[pos].equals("hostname_map"))       { Globals.setHostnameMapFilename(args[pos+1]) ; pos++;}
 					else                                        {System.out.println("Unknown field: " + args[pos]); System.exit(0);}
 
 				}
@@ -166,13 +168,19 @@ public class Main {
 		cacheDir.mkdirs();
 
 		Logging.log( "Use \"end\" to stop the server");
+		
+		MyPropertiesFile hostnameMap = null;
+		if (Globals.getHostnameMapFilename() != null) {
+			hostnameMap = new MyPropertiesFile(Globals.getHostnameMapFilename());
+			hostnameMap.load();
+		}
 
-		server = new ProxyListener( listenHostname, defaultHostname );
+		server = new ProxyListener( listenHostname, defaultHostname, hostnameMap );
 
 		server.start();
 
 		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-
+		
 		if(consoleInput) {
 			try {
 				while( !in.readLine().equals("end") ) {

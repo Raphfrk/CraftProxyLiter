@@ -47,14 +47,16 @@ public class ProxyListener extends KillableThread {
 	private final String listenHostname;
 	private final String defaultHostname;
 	private final FairnessManager fairnessManager = new FairnessManager();
+	private final MyPropertiesFile hostnameMap;
 
 	LinkedList<PassthroughConnection> connections = new LinkedList<PassthroughConnection>();
 
-	ProxyListener(String listenHostname, String defaultHostname) {
+	ProxyListener(String listenHostname, String defaultHostname, MyPropertiesFile hostnameMap) {
 		this.port = RedirectManager.getListenPort(listenHostname);
 		this.listenAddress = RedirectManager.getListenHostname(listenHostname);
 		this.listenHostname = listenHostname;
 		this.defaultHostname = defaultHostname;
+		this.hostnameMap = hostnameMap;
 		setName("Proxy Listener");
 	}
 
@@ -195,7 +197,7 @@ public class ProxyListener extends KillableThread {
 				}
 			} else {
 				try {
-					PassthroughConnection ptc = new PassthroughConnection(socket, address, defaultHostname,  listenHostname, fairnessManager, this);
+					PassthroughConnection ptc = new PassthroughConnection(socket, address, defaultHostname,  listenHostname, fairnessManager, this, hostnameMap);
 					ptc.start();
 					if(Main.craftGUI != null) {
 						Main.craftGUI.safeSetStatus("Client connected: " + address + "/" + port);

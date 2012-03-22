@@ -369,6 +369,15 @@ public class Globals {
 		Globals.logTime = logTime;
 	}
 	
+	static private String hostnameMapFilename = null;
+	
+	static public void setHostnameMapFilename(String s) {
+		hostnameMapFilename = s;
+	}
+	
+	static public String getHostnameMapFilename() {
+		return hostnameMapFilename;
+	}
 	
 	private static int maxHeight = 256;
 	static public int getMaxWorldHeight() {

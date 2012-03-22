@@ -42,8 +42,9 @@ public class PassthroughConnection extends KillableThread {
 	final FairnessManager fairnessManager;
 	public final ProxyListener proxyListener;
 	public final String IPAddress;
+	private final MyPropertiesFile hostnameMap;
 
-	PassthroughConnection(Socket clientSocket, String address, String hostname, String listenHostname, FairnessManager fairnessManager, ProxyListener proxyListener) {
+	PassthroughConnection(Socket clientSocket, String address, String hostname, String listenHostname, FairnessManager fairnessManager, ProxyListener proxyListener, MyPropertiesFile hostnameMap) {
 
 		this.clientSocket = clientSocket;
 		this.listenHostname = listenHostname;
@@ -54,6 +55,7 @@ public class PassthroughConnection extends KillableThread {
 		this.proxyListener = proxyListener;
 		setName("Passthrough connection - " + System.currentTimeMillis());
 		this.IPAddress = address;
+		this.hostnameMap = hostnameMap;
 
 	}
 
@@ -103,10 +105,28 @@ public class PassthroughConnection extends KillableThread {
 
 		// Find if there is any entry in the reconnect cache for player
 
-		String cached = ReconnectCache.get(connectionInfo.getUsername());
+		String reconnectUsername = connectionInfo.getUsername();
 
-		String hostname = (cached.length() > 0) ? cached : defaultHostname;
-
+		String hostname = defaultHostname;
+		String[] split = connectionInfo.getUsernameRaw().split(";");
+		if (split.length >= 2) {
+			split = split[1].split(":");
+			reconnectUsername = connectionInfo.getUsername() + ";" + split[0];
+			String cached = ReconnectCache.get(reconnectUsername);
+			hostname = hostnameMap == null ? null : hostnameMap.getString(split[0], "");
+			if (cached.length() > 0) {
+				hostname = cached;
+				this.printLogMessage("Using cached hostname: " + hostname);
+			} else if (hostname == null || hostname.equals("")) {
+				hostname = defaultHostname;
+			} else {
+				this.printLogMessage("Using hostname map: " + split[0] + " -> " + hostname);
+			}
+		} else {
+			this.printLogMessage("Improper username from client no hostname provided");
+			hostname = defaultHostname;
+		}
+		
 		if(connectionInfo.getHostname() == null) {
 			connectionInfo.setHostname(hostname);
 		}
@@ -131,7 +151,7 @@ public class PassthroughConnection extends KillableThread {
 
 			if(serverSocket == null) {
 				printLogMessage("Unable to open server socket");
-				ReconnectCache.remove(connectionInfo.getUsername());
+				ReconnectCache.remove(reconnectUsername);
 				this.sendKickMessageAndClose(clientLocalSocket, "Unable to open socket to Minecraft server");
 				return;
 			}
@@ -140,7 +160,7 @@ public class PassthroughConnection extends KillableThread {
 
 			if(!serverLocalSocket.success) {
 				printLogMessage("Unable to open server socket data streams");
-				ReconnectCache.remove(connectionInfo.getUsername());
+				ReconnectCache.remove(reconnectUsername);
 				this.sendKickMessageAndClose(clientLocalSocket, "Unable to open socket streams to Minecraft server");
 				serverLocalSocket.closeSocket(this);
 				return;
@@ -155,7 +175,7 @@ public class PassthroughConnection extends KillableThread {
 
 			if(reply != null) {
 				printLogMessage("Login failed: " + reply);
-				ReconnectCache.remove(connectionInfo.getUsername());
+				ReconnectCache.remove(reconnectUsername);
 				sendKickMessageAndClose(clientLocalSocket, reply);
 				clientLocalSocket.closeSocket(this);
 				serverLocalSocket.closeSocket(this);
@@ -190,7 +210,7 @@ public class PassthroughConnection extends KillableThread {
 			firstConnection = false;
 			connectionInfo.redirect = false;
 			
-			ReconnectCache.store(connectionInfo.getUsername(), connectionInfo.getHostname());
+			ReconnectCache.store(reconnectUsername, connectionInfo.getHostname());
 
 			KillableThread StCBridge = new DownstreamBridge(serverLocalSocket.pin, clientLocalSocket.pout, this, fairnessManager);
 			KillableThread CtSBridge = new UpstreamBridge(clientLocalSocket.pin, serverLocalSocket.pout, this, fairnessManager);
