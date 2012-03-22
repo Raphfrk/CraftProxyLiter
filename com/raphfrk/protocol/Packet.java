@@ -238,7 +238,7 @@ public class Packet {
 	
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder();
+		StringBuilder sb = new StringBuilder("[");
 		boolean first = true;
 		for(int cnt = 0; cnt<end-start;cnt++) {
 			if(!first) {
@@ -248,6 +248,6 @@ public class Packet {
 			}
 			sb.append(Integer.toHexString(getByte(cnt) & 0xFF));
 		}
-		return sb.toString();
+		return sb.append("]").toString();
 	}
 }

@@ -35,36 +35,32 @@ public class Packet01Login extends Packet {
 		return getString16(5);
 	}
 	
-	public long getSeed() {
-		return getLong(5 + getString16Length(5));
-	}
-	
-	public void setSeed(long seed) {
-		setLong(5 + getString16Length(5), seed);
+	private int getLevelStringStart() {
+		return 5 + getString16Length(5);
 	}
 	
 	public String getLevelType() {
-		return getString16(13 + getString16Length(5));
+		return getString16(getLevelStringStart());
+	}
+	
+	private int getModeStart() {
+		return getLevelStringStart() + getString16Length(getLevelStringStart());
 	}
 	
 	public int getMode() {
-		return getInt(13 + getString16Length(5) + getString16Length(13 + getString16Length(5)));
+		return getInt(getModeStart());
 	}
 	
-	public byte getDimension() {
-		return getByte(17 + getString16Length(5) + getString16Length(13 + getString16Length(5)));
+	public int getDimension() {
+		return getInt(getModeStart() + 4);
 	}
 	
 	public byte getUnknown() {
-		return getByte(18 + getString16Length(5) + getString16Length(13 + getString16Length(5)));
-	}
-	
-	public byte getHeight() {
-		return getByte(19 + getString16Length(5) + getString16Length(13 + getString16Length(5)));
+		return getByte(getModeStart() + 8);
 	}
 	
 	public byte getMaxPlayers() {
-		return getByte(20 + getString16Length(5) + getString16Length(13 + getString16Length(5)));
+		return getByte(getModeStart() + 10);
 	}
 
 }

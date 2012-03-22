@@ -129,7 +129,7 @@ public class UpstreamBridge extends KillableThread {
 					}
 				}
 			} catch (EOFException e) {
-				ptc.printLogMessage("EOF reached");
+				ptc.printLogMessage("UpsteamBridge - EOF reached");
 				kill();
 				continue;
 			} catch (IOException e) {

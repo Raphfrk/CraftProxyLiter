@@ -220,7 +220,7 @@ public class LoginManager {
 				if (packet.getByte(0) == 1) {
 					packet = new Packet01Login(packet);
 					info.clientVersion = packet.getInt(1);
-					info.craftProxyLogin = ((Packet01Login)packet).getSeed() == MAGIC_SEED;
+					//info.craftProxyLogin = ((Packet01Login)packet).getSeed() == MAGIC_SEED;
 				}
 				//((Packet01Login)packet).setSeed(MAGIC_SEED);
 			} catch (EOFException eof) {
@@ -302,8 +302,6 @@ public class LoginManager {
 		info.loginDimension = StCLogin.getDimension();
 		info.loginUnknownRespawn = StCLogin.getUnknown();
 		info.loginCreative = (byte)StCLogin.getMode();
-		info.loginHeight = StCLogin.getHeight();
-		info.loginSeed = StCLogin.getSeed();
 		info.levelType = StCLogin.getLevelType();
 		
 		if(!reconnect) {

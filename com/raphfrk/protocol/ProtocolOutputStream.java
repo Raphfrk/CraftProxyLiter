@@ -51,14 +51,12 @@ public class ProtocolOutputStream {
 			buffered.write(packet.buffer, start, top - start);
 			buffered.write(packet.buffer, 0, end);
 		} else {
-			/*StringBuilder sb = new StringBuilder(buffered + ":" + "[ ");
-			for(int cnt = start; cnt < end; cnt++) {
-				sb.append(Integer.toHexString(packet.buffer[cnt&packet.mask]&0xFF) + " ");
-			}
-			sb.append("]");
-			System.out.println(sb.toString());*/
 			buffered.write(packet.buffer, start, end - start);
-
+			/*if (packet.end - packet.start < 256) {
+				System.out.println("Sending: " + packet);
+			} else {
+				System.out.println("Sending: " + packet.getByte(0) + " of length " + (packet.end - packet.start));
+			}*/
 		}
 
 		return packet;

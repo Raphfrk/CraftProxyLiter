@@ -74,7 +74,7 @@ public class DownstreamBridge extends KillableThread {
 					continue;
 				}
 			} catch (EOFException e) {
-				ptc.printLogMessage("EOF reached");
+				ptc.printLogMessage("DownsteamBridge - EOF reached");
 				kill();
 				continue;
 			} catch (IOException e) {
@@ -180,8 +180,8 @@ public class DownstreamBridge extends KillableThread {
 						if(newHostname != null) {
 							ptc.connectionInfo.redirect = true;
 							
-							Packet09Respawn normalPacket = new Packet09Respawn((byte)0, (byte)2, (byte)0, (short)128, 0L, "DEFAULT");
-							Packet09Respawn netherPacket = new Packet09Respawn((byte)-1, (byte)2, (byte)0, (short)128, 0L, "DEFAULT");
+							Packet09Respawn normalPacket = new Packet09Respawn((int)0, (byte)2, (byte)0, (short)Globals.getMaxWorldHeight(), "DEFAULT");
+							Packet09Respawn netherPacket = new Packet09Respawn((int)-1, (byte)2, (byte)0, (short)Globals.getMaxWorldHeight(), "DEFAULT");
 							try {
 								fm.addPacketToHighQueue(out, normalPacket, this);
 								fm.addPacketToHighQueue(out, netherPacket, this);

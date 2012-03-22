@@ -27,35 +27,34 @@ public class Packet09Respawn extends Packet {
 		super(packet, 9);
 	}
 
-	public Packet09Respawn(byte dimension, byte unknown, byte creative, short height, long seed, String levelType) {
+	public Packet09Respawn(int dimension, byte difficulty, byte creative, short height, String levelType) {
 		super(14 + levelType.length() + 2);
 		super.writeByte((byte)0x09);
-		super.writeByte(dimension);
-		super.writeByte(unknown);
+		super.writeInt(dimension);
+		super.writeByte(difficulty);
 		super.writeByte(creative);
 		super.writeShort(height);
-		super.writeLong(seed);
 		super.writeString16(levelType);
 	}
 	
-	public byte getDimension() {
-		return getByte(1);
+	public int getDimension() {
+		return getInt(1);
 	}
 	
-	public byte getUnknownField() {
-		return getByte(2);
+	public byte getDifficulty() {
+		return getByte(5);
 	}
 	
 	public byte getCreative() {
-		return getByte(3);
+		return getByte(6);
 	}
 	
 	public short getHeight() {
-		return getShort(4);
+		return getShort(7);
 	}
 	
-	public long getLong() {
-		return getLong(6);
+	public String getType() {
+		return getString16(9);
 	}
 	
 }
