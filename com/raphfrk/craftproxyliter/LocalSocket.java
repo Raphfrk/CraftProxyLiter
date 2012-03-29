@@ -148,6 +148,7 @@ public class LocalSocket {
 		try {
 			pout.flush();
 			pout.close();
+			pin.close();
 			socket.close();
 		} catch (IOException e) {
 			return false;
