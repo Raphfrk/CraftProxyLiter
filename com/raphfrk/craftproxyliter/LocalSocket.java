@@ -56,7 +56,7 @@ public class LocalSocket {
 		Socket socket = null;
 
 		try {
-			if(hostname.trim().startsWith("localhost") && Globals.varyLocalhost()) {
+			if(Globals.varyLocalhost() && (hostname.trim().equals("localhost") || isLocalIP(hostname.trim()))) {
 				String fakeLocalIP = LocalhostIPFactory.getNextIP();
 				if(!Globals.isQuiet()) {
 					ptc.printLogMessage("Connecting to: " + hostname + ":" + port + " from " + fakeLocalIP );
@@ -110,6 +110,10 @@ public class LocalSocket {
 
 		return socket;
 
+	}
+	
+	public static boolean isLocalIP(String hostname) {
+		return getLocalIPs().contains(hostname);
 	}
 
 	public static List<String> getLocalIPs() {
