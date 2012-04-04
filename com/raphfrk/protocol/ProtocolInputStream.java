@@ -186,6 +186,10 @@ public class ProtocolInputStream {
 		return ret;
 
 	}
+	
+	public void close() throws IOException {
+		in.close();
+	}
 
 
 }
