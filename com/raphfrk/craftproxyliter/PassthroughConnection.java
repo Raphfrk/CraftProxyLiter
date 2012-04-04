@@ -28,6 +28,7 @@ import java.util.Date;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.raphfrk.protocol.KillableThread;
+import com.raphfrk.protocol.Packet;
 import com.raphfrk.protocol.Packet09Respawn;
 import com.raphfrk.protocol.Packet10Holding;
 import com.raphfrk.protocol.PacketFFKick;
@@ -168,6 +169,18 @@ public class PassthroughConnection extends KillableThread {
 			} else {
 				printLogMessage("Connection successful");
 			}
+			
+			for (Packet p : connectionInfo.loginCustomPackets) {
+				try {
+					serverLocalSocket.pout.sendPacket(p);
+				} catch (IOException e) {
+					printLogMessage("Unable to send custom packet to server");
+					this.sendKickMessageAndClose(clientLocalSocket, "Unable to send custom packet to server");
+					serverLocalSocket.closeSocket(this);
+				}
+			}
+			
+			connectionInfo.loginCustomPackets.clear();
 
 			// Complete login process
 

@@ -46,10 +46,19 @@ public class LoginManager {
 		Packet packet = new Packet();
 
 		try {
-			packet = clientSocket.pin.getPacket(packet);
-			if(packet == null) {
-				return "Client didn't send handshake packet";
-			}
+			boolean receivedLoginPacket;
+			do {
+				receivedLoginPacket = true;
+				packet = clientSocket.pin.getPacket(packet);
+				if(packet == null) {
+					return "Client didn't send handshake packet";
+				}
+				if ((packet.getByte(0) & 0xFF) == 0xFA) {
+					info.loginCustomPackets.add(packet.clone(null));
+					packet = new Packet();
+					receivedLoginPacket = false;
+				}
+			} while (!receivedLoginPacket);
 		} catch (EOFException eof) {
 			return "Client closed connection before sending handshake";
 		} catch (IOException ioe) {

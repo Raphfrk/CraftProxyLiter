@@ -23,7 +23,6 @@ package com.raphfrk.craftproxyliter;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -31,6 +30,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import com.raphfrk.protocol.Packet;
 
 public class ConnectionInfo {
 	
@@ -41,6 +42,8 @@ public class ConnectionInfo {
 	public ConcurrentHashMap<Long,Boolean> hashesReceived = new ConcurrentHashMap<Long,Boolean>();
 	public Set<Long> activeChunks = Collections.synchronizedSet(new LinkedHashSet<Long>());
 	public Set<Integer> activeEntities = Collections.synchronizedSet(new LinkedHashSet<Integer>());
+	
+	public List<Packet> loginCustomPackets = new ArrayList<Packet>();
 	
 	public int clientPlayerId = 0;
 	public int serverPlayerId = 0;
